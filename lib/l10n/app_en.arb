@@ -2,160 +2,69 @@
   "@@locale": "en",
 
   "appTitle": "Collection App",
-  "@appTitle": {
-    "description": "The title of the application"
-  },
-
   "myCollections": "My Collections",
-  "@myCollections": {
-    "description": "Header title for collections overview"
-  },
-
   "discoverAndCollect": "Discover and collect special places",
-  "@discoverAndCollect": {
-    "description": "Subtitle for home screen"
-  },
-
   "searchPlacesOrCollections": "Search places or collections...",
-  "@searchPlacesOrCollections": {
-    "description": "Search bar placeholder"
-  },
-
   "visited": "Visited",
-  "@visited": {
-    "description": "Label for visited count"
-  },
-
   "total": "Total",
-  "@total": {
-    "description": "Label for total count"
-  },
-
   "progress": "Progress",
-  "@progress": {
-    "description": "Label for progress percentage"
-  },
-
   "activeCollections": "Active Collections",
-  "@activeCollections": {
-    "description": "Section header for collections list"
-  },
-
   "map": "Map",
-  "@map": {
-    "description": "Button text for map view"
-  },
-
   "details": "Details",
-  "@details": {
-    "description": "Button text for details view"
-  },
-
   "collectingProgress": "Collecting Progress",
-  "@collectingProgress": {
-    "description": "Progress bar label"
-  },
-
   "searchLocations": "Search locations...",
-  "@searchLocations": {
-    "description": "Search placeholder in collection detail"
-  },
-
   "all": "All",
-  "@all": {
-    "description": "Filter button for all items"
-  },
-
   "collected": "Collected",
-  "@collected": {
-    "description": "Filter button for collected items"
-  },
-
   "open": "Open",
-  "@open": {
-    "description": "Filter button for open/unvisited items"
-  },
-
   "noLocationsFound": "No locations found",
-  "@noLocationsFound": {
-    "description": "Empty state message"
-  },
-
   "tryDifferentSearch": "Try a different search term or filter.",
-  "@tryDifferentSearch": {
-    "description": "Empty state helper text"
-  },
-
   "markAsVisited": "Mark as\nvisited",
-  "@markAsVisited": {
-    "description": "Button text to mark location as visited"
-  },
-
   "visitedToday": "Visited today",
-  "@visitedToday": {
-    "description": "Status text for recently visited location"
-  },
-
   "visitedCount": "{visited} of {total} visited",
-  "@visitedCount": {
-    "description": "Progress text showing visited out of total",
-    "placeholders": {
-      "visited": {
-        "type": "int",
-        "example": "5"
-      },
-      "total": {
-        "type": "int",
-        "example": "20"
-      }
-    }
-  },
-
   "allCount": "All ({count})",
-  "@allCount": {
-    "description": "Filter button text with count",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "15"
-      }
-    }
-  },
-
   "collectedCount": "Collected ({count})",
-  "@collectedCount": {
-    "description": "Filter button text with visited count",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "5"
-      }
-    }
-  },
-
   "openCount": "Open ({count})",
-  "@openCount": {
-    "description": "Filter button text with unvisited count",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "10"
-      }
-    }
-  },
-
   "mcdonaldsDescription": "Collect all McDonald's restaurants in your area",
-  "@mcdonaldsDescription": {
-    "description": "Description for McDonald's collection"
-  },
-
   "starbucksDescription": "Discover all Starbucks locations",
-  "@starbucksDescription": {
-    "description": "Description for Starbucks collection"
-  },
-
   "museumsDescription": "Visit museums and exhibitions",
-  "@museumsDescription": {
-    "description": "Description for museums collection"
-  }
+
+  "settings": "Settings",
+  "profile": "Profile",
+  "preferences": "Preferences",
+  "collections": "Collections",
+  "dataPrivacy": "Data & Privacy",
+  "support": "Support",
+  "language": "Language",
+  "theme": "Theme",
+  "notifications": "Notifications",
+  "receiveUpdates": "Receive updates and achievements",
+  "locationServices": "Location Services",
+  "findNearbyPlaces": "Find nearby places automatically",
+  "autoMark": "Auto Mark Nearby",
+  "autoMarkDescription": "Automatically mark places when nearby",
+  "soundEffects": "Sound Effects",
+  "achievementSounds": "Play sounds for achievements",
+  "manageData": "Manage Data",
+  "clearCache": "Clear Cache",
+  "privacy": "Privacy Policy",
+  "dataUsage": "How we use your data",
+  "exportData": "Export Data",
+  "downloadCollections": "Download your collections",
+  "help": "Help & Support",
+  "faq": "Frequently asked questions",
+  "feedback": "Send Feedback",
+  "sendFeedback": "Help us improve the app",
+  "about": "About",
+  "selectLanguage": "Select Language",
+  "selectTheme": "Select Theme",
+  "lightTheme": "Light",
+  "darkTheme": "Dark",
+  "systemTheme": "System Default",
+  "cancel": "Cancel",
+  "cacheCleared": "Cache cleared successfully",
+  "exportDescription": "Export all your collection data as JSON file",
+  "exportStarted": "Export started. Check your downloads.",
+  "export": "Export",
+  "dataManagementInfo": "This will clear temporary files and reset some preferences.",
+  "aboutDescription": "A beautiful app for collecting and tracking special places you visit."
 }

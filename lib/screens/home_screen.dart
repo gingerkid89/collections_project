@@ -1,10 +1,12 @@
 // lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../models/collection_factory.dart';
 import '../models/collection_base.dart';
 import '../models/location.dart';
 import 'collection_detail_screen.dart';
+import 'settings_screen.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -167,8 +169,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.more_horiz, color: Color(0xFF6B7280)),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const SettingsScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.settings, color: Color(0xFF6B7280)),
                             ),
                           ),
                         ],

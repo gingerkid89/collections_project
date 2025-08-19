@@ -1,8 +1,9 @@
 // lib/screens/collection_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../models/collection_base.dart';
 import '../models/location.dart';
+
 
 class CollectionDetailScreen extends StatefulWidget {
   final CollectionBase collection;
