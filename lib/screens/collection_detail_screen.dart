@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/collection_base.dart';
 import '../models/location.dart';
+import '../models/restaurant.dart';
+import '../models/museum.dart';
+import '../models/place.dart';
+import '../models/menu_item.dart';
+import 'place_detail_factory.dart';
 
 
 class CollectionDetailScreen extends StatefulWidget {
@@ -37,6 +42,230 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     }).toList();
 
     return locations;
+  }
+
+  void _navigateToLocationDetail(BuildContext context, Location location) {
+    // Convert Location to appropriate Place type based on collection
+    final place = _convertLocationToPlace(location);
+    
+    if (place != null) {
+      final detailView = PlaceDetailFactory.createDetailView(place);
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) => detailView),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Detail view not available for ${location.name}'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Place? _convertLocationToPlace(Location location) {
+    // Create a Place object from Location based on collection type
+    final collectionType = widget.collection.collectionType;
+    
+    switch (collectionType) {
+      case 'restaurant':
+        return _createRestaurantFromLocation(location);
+      case 'museum':
+        return _createMuseumFromLocation(location);
+      default:
+        return null;
+    }
+  }
+
+  Restaurant _createRestaurantFromLocation(Location location) {
+    // Create McDonald's-specific menu items
+    final mcdonaldsMenu = [
+      // Burger
+      MenuItem(
+        id: 'mc_big_mac',
+        name: 'Big Mac',
+        description: 'Zwei Rindfleisch-Patties, Spezialsoße, Salat, Käse, Zwiebeln und Gewürzgurken auf einem Sesambrötchen',
+        price: 5.50,
+        category: 'Burger',
+      ),
+      MenuItem(
+        id: 'mc_quarter_pounder',
+        name: 'Quarter Pounder with Cheese',
+        description: 'Viertel-Pfund-Rindfleisch-Patty mit zwei Scheiben Käse, Zwiebeln, Gewürzgurken, Ketchup und Senf',
+        price: 6.20,
+        category: 'Burger',
+      ),
+      MenuItem(
+        id: 'mc_cheeseburger',
+        name: 'Cheeseburger',
+        description: 'Rindfleisch-Patty mit Käse, Zwiebeln, Gewürzgurken, Ketchup und Senf',
+        price: 1.50,
+        category: 'Burger',
+      ),
+      MenuItem(
+        id: 'mc_mcchicken',
+        name: 'McChicken',
+        description: 'Knuspriges Hähnchen-Filet mit frischem Salat und Mayo',
+        price: 4.20,
+        category: 'Burger',
+      ),
+      
+      // Pommes & Beilagen
+      MenuItem(
+        id: 'mc_fries_small',
+        name: 'Pommes frites klein',
+        description: 'Goldgelbe, knusprige Pommes frites',
+        price: 2.50,
+        category: 'Pommes & Beilagen',
+      ),
+      MenuItem(
+        id: 'mc_fries_medium',
+        name: 'Pommes frites mittel',
+        description: 'Goldgelbe, knusprige Pommes frites',
+        price: 3.20,
+        category: 'Pommes & Beilagen',
+      ),
+      MenuItem(
+        id: 'mc_nuggets_6',
+        name: 'Chicken McNuggets 6er',
+        description: 'Sechs knusprige Chicken McNuggets aus 100% Hähnchenfleisch',
+        price: 4.50,
+        category: 'Pommes & Beilagen',
+      ),
+      MenuItem(
+        id: 'mc_nuggets_20',
+        name: 'Chicken McNuggets 20er',
+        description: 'Zwanzig knusprige Chicken McNuggets aus 100% Hähnchenfleisch',
+        price: 12.90,
+        category: 'Pommes & Beilagen',
+      ),
+      
+      // McCafé
+      MenuItem(
+        id: 'mc_latte',
+        name: 'Latte Macchiato',
+        description: 'Cremiger Latte Macchiato mit McCafé Premium-Bohnen',
+        price: 3.80,
+        category: 'McCafé',
+      ),
+      MenuItem(
+        id: 'mc_cappuccino',
+        name: 'Cappuccino',
+        description: 'Aromatischer Cappuccino mit cremigem Milchschaum',
+        price: 3.20,
+        category: 'McCafé',
+      ),
+      MenuItem(
+        id: 'mc_muffin_chocolate',
+        name: 'Chocolate Chip Muffin',
+        description: 'Saftiger Muffin mit Schokoladenstückchen',
+        price: 2.80,
+        category: 'McCafé',
+      ),
+      
+      // Desserts
+      MenuItem(
+        id: 'mc_mcflurry_oreo',
+        name: 'McFlurry Oreo',
+        description: 'Cremiges Softeis mit knusprigen Oreo-Keksstückchen',
+        price: 3.50,
+        category: 'Desserts',
+      ),
+      MenuItem(
+        id: 'mc_apple_pie',
+        name: 'Apfeltasche',
+        description: 'Warme, knusprige Apfeltasche mit zimtigen Äpfeln',
+        price: 1.80,
+        category: 'Desserts',
+      ),
+      MenuItem(
+        id: 'mc_cookies',
+        name: 'Cookies',
+        description: 'Zwei frisch gebackene Chocolate Chip Cookies',
+        price: 1.50,
+        category: 'Desserts',
+      ),
+      
+      // Getränke
+      MenuItem(
+        id: 'mc_coke_medium',
+        name: 'Coca-Cola mittel',
+        description: 'Erfrischende Coca-Cola',
+        price: 2.50,
+        category: 'Getränke',
+      ),
+      MenuItem(
+        id: 'mc_orange_juice',
+        name: 'Orangensaft',
+        description: '100% Orangensaft ohne Zuckerzusatz',
+        price: 2.80,
+        category: 'Getränke',
+      ),
+      MenuItem(
+        id: 'mc_milkshake_vanilla',
+        name: 'Vanille Milkshake',
+        description: 'Cremiger Milkshake mit Vanillegeschmack',
+        price: 3.20,
+        category: 'Getränke',
+      ),
+    ];
+
+    return Restaurant(
+      id: location.id,
+      name: location.name,
+      cuisine: 'Fast Food', // McDonald's specific
+      priceCategory: '€',
+      menu: mcdonaldsMenu,
+      collectionStatus: PlaceCollectionStatus(
+        isVisited: location.isVisited,
+        lastVisit: location.visitDate,
+        userRating: location.userRating?.toDouble(),
+        visitCount: location.isVisited ? 1 : 0,
+      ),
+      visits: [], // Would be loaded from data
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'monday': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasReservation: false, // McDonald's typically doesn't take reservations
+      hasDelivery: true,     // McDonald's has delivery
+      hasTakeout: true,      // McDonald's has takeout
+    );
+  }
+
+  Museum _createMuseumFromLocation(Location location) {
+    return Museum(
+      id: location.id,
+      name: location.name,
+      category: 'art', // Default - in real app from data
+      currentExhibitions: ['Moderne Kunst 2024', 'Impressionisten'],
+      permanentCollections: ['Klassische Sammlung', 'Zeitgenössische Kunst'],
+      ticketPrice: '€15 / €8 ermäßigt',
+      collectionStatus: PlaceCollectionStatus(
+        isVisited: location.isVisited,
+        lastVisit: location.visitDate,
+        userRating: location.userRating?.toDouble(),
+        visitCount: location.isVisited ? 1 : 0,
+      ),
+      visits: [], // Would be loaded from data
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'tuesday-sunday': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasAudioGuide: true,
+      hasGiftShop: true,
+      isWheelchairAccessible: false,
+    );
   }
 
   Color get brandColor {
@@ -215,9 +444,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                     final location = filteredLocations[index];
                     return LocationTile(
                       location: location,
-                      onTap: () {
-                        print('Tapped ${location.name}');
-                      },
+                      onTap: () => _navigateToLocationDetail(context, location),
                       onMarkVisited: () {
                         setState(() {
                           if (location.isVisited) {

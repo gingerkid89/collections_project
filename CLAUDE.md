@@ -1,0 +1,1 @@
+- currently the app uses a placeholder when clicking on a specific restaurant. can we use the restaurant detail view in the mcdonalds collection? create dummy data fitting a mc donalds for this views
