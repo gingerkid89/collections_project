@@ -1,11 +1,13 @@
 // lib/screens/place_detail_interface.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/place.dart';
 import '../models/visit.dart';
 import '../models/place_statistic.dart';
 import '../models/restaurant.dart';
 import '../models/museum.dart';
+import '../providers/visits_provider.dart';
 // Dynamic imports to avoid circular dependency issues
 // import 'place_detail_implementations/restaurant_detail_view.dart';
 // import 'place_detail_implementations/museum_detail_view.dart';
@@ -356,27 +358,31 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildVisitsTab() {
-    final visits = widget.placeView.visits;
+    return Consumer<VisitsProvider>(
+      builder: (context, visitsProvider, child) {
+        final visits = visitsProvider.getVisitsForPlace(widget.placeView.place.id);
 
-    return visits.isEmpty
-        ? const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.calendar_today, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('Noch keine Besuche'),
-          SizedBox(height: 8),
-          Text('Fügen Sie Ihren ersten Besuch hinzu!'),
-        ],
-      ),
-    )
-        : ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: visits.length,
-      itemBuilder: (context, index) {
-        final visit = visits[visits.length - 1 - index]; // Newest first
-        return _buildVisitCard(visit);
+        return visits.isEmpty
+            ? const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.calendar_today, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text('Noch keine Besuche'),
+              SizedBox(height: 8),
+              Text('Fügen Sie Ihren ersten Besuch hinzu!'),
+            ],
+          ),
+        )
+            : ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: visits.length,
+          itemBuilder: (context, index) {
+            final visit = visits[index]; // Already sorted newest first in provider
+            return _buildVisitCard(visit);
+          },
+        );
       },
     );
   }
@@ -574,7 +580,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     // TODO: Implement
   }
 
-  void _addVisit() {
+  void _addVisit() async {
     // Use the place's specific FAB functionality
     final fab = widget.placeView.getFloatingActionButton(context);
     if (fab is FloatingActionButton) {

@@ -448,11 +448,19 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
 
   String _getCategoryEmoji(String category) {
     switch (category.toLowerCase()) {
+      // McDonald's categories
       case 'burger': return '🍔';
       case 'pommes & beilagen': return '🍟';
       case 'mccafé': return '☕';
       case 'desserts': return '🍦';
       case 'getränke': return '🥤';
+      // Starbucks categories
+      case 'kaffee': return '☕';
+      case 'frappuccino': return '🥤';
+      case 'tee': return '🍵';
+      case 'snacks': return '🥐';
+      case 'kalte getränke': return '🧊';
+      // General categories
       case 'vorspeisen': return '🥗';
       case 'hauptgerichte': return '🍖';
       case 'pasta': return '🍝';
@@ -464,11 +472,19 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
 
   String _getDishEmoji(String category) {
     switch (category.toLowerCase()) {
+      // McDonald's categories
       case 'burger': return '🍔';
       case 'pommes & beilagen': return '🍟';
       case 'mccafé': return '☕';
       case 'desserts': return '🍦';
       case 'getränke': return '🥤';
+      // Starbucks categories
+      case 'kaffee': return '☕';
+      case 'frappuccino': return '🥤';
+      case 'tee': return '🍵';
+      case 'snacks': return '🥐';
+      case 'kalte getränke': return '🧊';
+      // General categories
       case 'pasta': return '🍝';
       case 'pizza': return '🍕';
       case 'vorspeisen': return '🧄';
@@ -478,11 +494,16 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
     }
   }
 
-  void _addRestaurantVisit(BuildContext context) {
-    showDialog(
+  void _addRestaurantVisit(BuildContext context) async {
+    final visit = await showDialog(
       context: context,
       builder: (context) => AddRestaurantVisitDialog(restaurant: restaurant),
     );
+    
+    // Return the visit to the calling navigator so collection screen can handle it
+    if (visit != null && context.mounted) {
+      Navigator.of(context).pop(visit);
+    }
   }
 
   @override

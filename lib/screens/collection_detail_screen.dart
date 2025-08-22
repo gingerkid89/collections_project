@@ -1,5 +1,6 @@
 // lib/screens/collection_detail_screen.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/collection_base.dart';
 import '../models/location.dart';
@@ -7,6 +8,8 @@ import '../models/restaurant.dart';
 import '../models/museum.dart';
 import '../models/place.dart';
 import '../models/menu_item.dart';
+import '../models/visit.dart';
+import '../providers/visits_provider.dart';
 import 'place_detail_factory.dart';
 
 
@@ -44,15 +47,35 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     return locations;
   }
 
-  void _navigateToLocationDetail(BuildContext context, Location location) {
+  void _navigateToLocationDetail(BuildContext context, Location location) async {
     // Convert Location to appropriate Place type based on collection
     final place = _convertLocationToPlace(location);
     
     if (place != null) {
       final detailView = PlaceDetailFactory.createDetailView(place);
-      Navigator.of(context).push(
+      final result = await Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => detailView),
       );
+      
+      // If a visit was created and returned, save it and mark location as visited
+      if (result != null && result is Visit && mounted) {
+        final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+        await visitsProvider.addVisit(result);
+        
+        setState(() {
+          // Use the actual rating from the visit instead of hardcoded 5
+          location.markAsVisited(rating: result.overallRating?.toInt() ?? 5);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Besuch bei ${location.name} gespeichert!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -77,7 +100,39 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     }
   }
 
+  // Generic helper to get existing visits for any location
+  List<Visit> _getExistingVisits(String locationId) {
+    final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+    return visitsProvider.getVisitsForPlace(locationId);
+  }
+
+  // Generic helper to create collection status based on visits and location data
+  PlaceCollectionStatus _createCollectionStatus(Location location, List<Visit> visits) {
+    final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+    
+    return PlaceCollectionStatus(
+      isVisited: visitsProvider.hasVisited(location.id),
+      lastVisit: visitsProvider.getLastVisitDate(location.id),
+      userRating: visitsProvider.getAverageRating(location.id),
+      visitCount: visitsProvider.getVisitCount(location.id),
+    );
+  }
+
   Restaurant _createRestaurantFromLocation(Location location) {
+    // Determine if this is McDonald's or Starbucks based on location name/collection
+    final isStarbucks = location.name.toLowerCase().contains('starbucks') || 
+                       widget.collection.name.toLowerCase().contains('starbucks');
+    
+    if (isStarbucks) {
+      return _createStarbucksFromLocation(location);
+    } else {
+      return _createMcDonaldsFromLocation(location);
+    }
+  }
+
+  Restaurant _createMcDonaldsFromLocation(Location location) {
+    // Get existing visits for this location
+    final existingVisits = _getExistingVisits(location.id);
     // Create McDonald's-specific menu items
     final mcdonaldsMenu = [
       // Burger
@@ -216,13 +271,8 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       cuisine: 'Fast Food', // McDonald's specific
       priceCategory: '€',
       menu: mcdonaldsMenu,
-      collectionStatus: PlaceCollectionStatus(
-        isVisited: location.isVisited,
-        lastVisit: location.visitDate,
-        userRating: location.userRating?.toDouble(),
-        visitCount: location.isVisited ? 1 : 0,
-      ),
-      visits: [], // Would be loaded from data
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits, // Load actual visits from provider
       info: PlaceInfo(
         address: location.address,
         phone: location.phone,
@@ -238,7 +288,174 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     );
   }
 
+  Restaurant _createStarbucksFromLocation(Location location) {
+    // Get existing visits for this location
+    final existingVisits = _getExistingVisits(location.id);
+    // Create Starbucks-specific menu items
+    final starbucksMenu = [
+      // Kaffee
+      MenuItem(
+        id: 'sb_pike_place',
+        name: 'Pike Place Roast',
+        description: 'Ausgewogener Kaffee mit milden Noten von Kakao und gerösteten Nüssen',
+        price: 2.80,
+        category: 'Kaffee',
+      ),
+      MenuItem(
+        id: 'sb_americano',
+        name: 'Caffè Americano',
+        description: 'Espresso mit heißem Wasser, reich und vollmundig',
+        price: 3.20,
+        category: 'Kaffee',
+      ),
+      MenuItem(
+        id: 'sb_latte',
+        name: 'Caffè Latte',
+        description: 'Espresso mit gedämpfter Milch und einer dünnen Schicht Milchschaum',
+        price: 4.50,
+        category: 'Kaffee',
+      ),
+      MenuItem(
+        id: 'sb_cappuccino',
+        name: 'Cappuccino',
+        description: 'Espresso mit gedämpfter Milch und reichlich Milchschaum',
+        price: 4.20,
+        category: 'Kaffee',
+      ),
+      MenuItem(
+        id: 'sb_macchiato',
+        name: 'Caramel Macchiato',
+        description: 'Espresso mit Vanillesirup, gedämpfter Milch und Karamellsauce',
+        price: 5.20,
+        category: 'Kaffee',
+      ),
+
+      // Frappuccino
+      MenuItem(
+        id: 'sb_frap_caramel',
+        name: 'Caramel Frappuccino',
+        description: 'Kaffee-Frappuccino mit Karamellsirup und Schlagsahne',
+        price: 5.80,
+        category: 'Frappuccino',
+      ),
+      MenuItem(
+        id: 'sb_frap_mocha',
+        name: 'Mocha Frappuccino',
+        description: 'Kaffee-Frappuccino mit Schokoladensirup und Schlagsahne',
+        price: 5.60,
+        category: 'Frappuccino',
+      ),
+      MenuItem(
+        id: 'sb_frap_vanilla',
+        name: 'Vanilla Frappuccino',
+        description: 'Kaffee-Frappuccino mit Vanillesirup und Schlagsahne',
+        price: 5.40,
+        category: 'Frappuccino',
+      ),
+
+      // Tee
+      MenuItem(
+        id: 'sb_green_tea',
+        name: 'Green Tea Latte',
+        description: 'Matcha-Grüntee mit gedämpfter Milch',
+        price: 4.80,
+        category: 'Tee',
+      ),
+      MenuItem(
+        id: 'sb_chai_latte',
+        name: 'Chai Tea Latte',
+        description: 'Würziger Chai-Tee mit gedämpfter Milch',
+        price: 4.60,
+        category: 'Tee',
+      ),
+      MenuItem(
+        id: 'sb_earl_grey',
+        name: 'Earl Grey',
+        description: 'Klassischer Earl Grey Tee mit Bergamotte',
+        price: 2.90,
+        category: 'Tee',
+      ),
+
+      // Snacks
+      MenuItem(
+        id: 'sb_croissant',
+        name: 'Butter Croissant',
+        description: 'Frisches, buttriges Croissant',
+        price: 3.20,
+        category: 'Snacks',
+      ),
+      MenuItem(
+        id: 'sb_muffin_blueberry',
+        name: 'Blueberry Muffin',
+        description: 'Saftiger Muffin mit frischen Blaubeeren',
+        price: 3.80,
+        category: 'Snacks',
+      ),
+      MenuItem(
+        id: 'sb_sandwich',
+        name: 'Turkey & Swiss Sandwich',
+        description: 'Sandwich mit Truthahn, Schweizer Käse und frischem Gemüse',
+        price: 6.50,
+        category: 'Snacks',
+      ),
+      MenuItem(
+        id: 'sb_cookie',
+        name: 'Double Chocolate Cookie',
+        description: 'Schokoladenkeks mit Schokoladenstückchen',
+        price: 2.50,
+        category: 'Snacks',
+      ),
+
+      // Getränke (kalt)
+      MenuItem(
+        id: 'sb_iced_coffee',
+        name: 'Iced Coffee',
+        description: 'Kalter Kaffee mit Eis',
+        price: 3.50,
+        category: 'Kalte Getränke',
+      ),
+      MenuItem(
+        id: 'sb_cold_brew',
+        name: 'Cold Brew',
+        description: 'Kalt extrahierter Kaffee, mild und süßlich',
+        price: 3.80,
+        category: 'Kalte Getränke',
+      ),
+      MenuItem(
+        id: 'sb_refresher',
+        name: 'Strawberry Açaí Refresher',
+        description: 'Erfrischender Açaí-Drink mit Erdbeeren',
+        price: 4.20,
+        category: 'Kalte Getränke',
+      ),
+    ];
+
+    return Restaurant(
+      id: location.id,
+      name: location.name,
+      cuisine: 'Café', // Starbucks specific
+      priceCategory: '€€',
+      menu: starbucksMenu,
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits, // Load actual visits from provider
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'monday-friday': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasReservation: false, // Starbucks typically doesn't take reservations
+      hasDelivery: true,     // Starbucks has delivery
+      hasTakeout: true,      // Starbucks has takeout
+    );
+  }
+
   Museum _createMuseumFromLocation(Location location) {
+    // Get existing visits for this location
+    final existingVisits = _getExistingVisits(location.id);
     return Museum(
       id: location.id,
       name: location.name,
@@ -246,13 +463,8 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       currentExhibitions: ['Moderne Kunst 2024', 'Impressionisten'],
       permanentCollections: ['Klassische Sammlung', 'Zeitgenössische Kunst'],
       ticketPrice: '€15 / €8 ermäßigt',
-      collectionStatus: PlaceCollectionStatus(
-        isVisited: location.isVisited,
-        lastVisit: location.visitDate,
-        userRating: location.userRating?.toDouble(),
-        visitCount: location.isVisited ? 1 : 0,
-      ),
-      visits: [], // Would be loaded from data
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits, // Load actual visits from provider
       info: PlaceInfo(
         address: location.address,
         phone: location.phone,
@@ -445,15 +657,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                     return LocationTile(
                       location: location,
                       onTap: () => _navigateToLocationDetail(context, location),
-                      onMarkVisited: () {
-                        setState(() {
-                          if (location.isVisited) {
-                            location.markAsNotVisited();
-                          } else {
-                            location.markAsVisited(rating: 5);
-                          }
-                        });
-                      },
+                      onMarkVisited: null, // Disable manual marking - only through visit creation
                     );
                   },
                 ),
@@ -469,13 +673,13 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
 class LocationTile extends StatelessWidget {
   final Location location;
   final VoidCallback onTap;
-  final VoidCallback onMarkVisited;
+  final VoidCallback? onMarkVisited;
 
   const LocationTile({
     super.key,
     required this.location,
     required this.onTap,
-    required this.onMarkVisited,
+    this.onMarkVisited,
   });
 
   @override
@@ -590,8 +794,8 @@ class LocationTile extends StatelessWidget {
                 ),
               ),
 
-              // Tap-to-mark overlay für nicht besuchte
-              if (!location.isVisited)
+              // Only show tap-to-mark overlay if manual marking is enabled
+              if (!location.isVisited && onMarkVisited != null)
                 Positioned.fill(
                   child: Material(
                     color: Colors.transparent,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/museum.dart';
 import '../../models/place_statistic.dart';
 import '../place_detail_view_interface.dart';
+import '../add_visit_implementations/add_museum_visit_dialog.dart';
 
 class MuseumDetailView extends PlaceDetailViewInterface {
   final Museum museum;
@@ -245,7 +246,7 @@ class MuseumDetailView extends PlaceDetailViewInterface {
                 children: [
                   Icon(Icons.palette, size: 64, color: Colors.grey),
                   SizedBox(height: 16),
-                  Text('Keine Ausstellungsinformationen verfügbar'),
+                  Text('Keine Ausstellungsinformationen verfï¿½gbar'),
                 ],
               ),
             ),
@@ -465,19 +466,21 @@ class MuseumDetailView extends PlaceDetailViewInterface {
       case 'science': return 'Wissenschaft';
       case 'technology': return 'Technik';
       case 'nature': return 'Naturkunde';
-      case 'archaeology': return 'Archäologie';
+      case 'archaeology': return 'Archï¿½ologie';
       default: return category;
     }
   }
 
-  void _addMuseumVisit(BuildContext context) {
-    // TODO: Implement museum visit dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Museum-Besuch hinzufügen wird noch implementiert'),
-        backgroundColor: Colors.purple,
-      ),
+  void _addMuseumVisit(BuildContext context) async {
+    final visit = await showDialog(
+      context: context,
+      builder: (context) => AddMuseumVisitDialog(museum: museum),
     );
+    
+    // Return the visit to the calling navigator so collection screen can handle it
+    if (visit != null && context.mounted) {
+      Navigator.of(context).pop(visit);
+    }
   }
 
   @override

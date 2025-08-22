@@ -5,7 +5,7 @@ import '../models/place.dart';
 import '../models/restaurant.dart';
 import '../models/museum.dart';
 import 'place_detail_implementations/restaurant_detail_view.dart';
-// import 'place_detail_implementations/museum_detail_view.dart';
+import 'place_detail_implementations/museum_detail_view.dart';
 
 class PlaceDetailFactory {
   static Widget createDetailView(Place place) {
@@ -13,8 +13,7 @@ class PlaceDetailFactory {
       case 'restaurant':
         return RestaurantDetailView(restaurant: place as Restaurant);
       case 'museum':
-        // return MuseumDetailView(museum: place as Museum);
-        return _createPlaceholderView(place);
+        return MuseumDetailView(museum: place as Museum);
       default:
         throw UnsupportedError('Place type "${place.type}" not supported');
     }
