@@ -24,7 +24,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get visited => 'Besucht';
 
   @override
-  String get total => 'Gesamt';
+  String get total => 'Gesamt:';
 
   @override
   String get progress => 'Fortschritt';
@@ -215,4 +215,143 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get aboutDescription =>
       'Eine schöne App zum Sammeln und Verfolgen besonderer Orte, die du besuchst.';
+
+  @override
+  String visitDetails(Object placeName) {
+    return 'Besuch: $placeName';
+  }
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get visitInformation => 'Besuchsinformationen';
+
+  @override
+  String get date => 'Datum';
+
+  @override
+  String get time => 'Uhrzeit';
+
+  @override
+  String get duration => 'Dauer';
+
+  @override
+  String get notSpecified => 'Nicht angegeben';
+
+  @override
+  String get overallRating => 'Gesamtbewertung';
+
+  @override
+  String get required => 'erforderlich';
+
+  @override
+  String get notes => 'Notizen (optional)';
+
+  @override
+  String get visitNotes => 'Wie war dein Besuch?';
+
+  @override
+  String get visitedExhibitions => 'Besuchte Ausstellungen';
+
+  @override
+  String get noExhibitionsAvailable =>
+      'Keine Ausstellungsinformationen verfügbar';
+
+  @override
+  String get temporaryExhibition => 'Sonderausstellung';
+
+  @override
+  String get permanentExhibition => 'Dauerausstellung';
+
+  @override
+  String get additionalInformation => 'Zusätzliche Informationen';
+
+  @override
+  String get audioGuideUsed => 'Audio-Guide verwendet';
+
+  @override
+  String get giftShopVisited => 'Museumsshop besucht';
+
+  @override
+  String get hours => 'Stunden';
+
+  @override
+  String get minutes => 'Minuten';
+
+  @override
+  String get visitSavedSuccessfully => 'Besuch erfolgreich gespeichert!';
+
+  @override
+  String errorSaving(Object error) {
+    return 'Fehler beim Speichern: $error';
+  }
+
+  @override
+  String get museumVisitSaved => 'Museumsbesuch erfolgreich gespeichert!';
+
+  @override
+  String visitSavedAt(Object placeName) {
+    return 'Besuch bei $placeName gespeichert!';
+  }
+
+  @override
+  String get currentExhibitions => 'Aktuelle Ausstellungen';
+
+  @override
+  String get permanentCollections => 'Dauerausstellungen';
+
+  @override
+  String get exhibitions => 'Ausstellungen';
+
+  @override
+  String get equipment => 'Ausstattung & Service';
+
+  @override
+  String get audioGuide => 'Audio-Guide';
+
+  @override
+  String get giftShop => 'Museumsshop';
+
+  @override
+  String get wheelchairAccessible => 'Barrierefrei';
+
+  @override
+  String get visitDuration => 'Besuchsdauer';
+
+  @override
+  String get museumVisitNotes => 'Wie war dein Museumsbesuch?';
+
+  @override
+  String get addNewVisit => 'Neuen Besuch hinzufügen';
+
+  @override
+  String get noVisitsYet => 'Noch keine Besuche';
+
+  @override
+  String get addFirstVisit => 'Fügen Sie Ihren ersten Besuch hinzu!';
+
+  @override
+  String get dishesOrdered => 'Gegessene Gerichte';
+
+  @override
+  String get availableDishes => 'Verfügbare Gerichte:';
+
+  @override
+  String get selectedDishes => 'Ausgewählte Gerichte:';
+
+  @override
+  String get costs => 'Kosten';
+
+  @override
+  String get dishes => 'Gerichte:';
+
+  @override
+  String get tip => 'Trinkgeld:';
+
+  @override
+  String get other => 'Sonstiges:';
+
+  @override
+  String get restaurantVisitNotes => 'Wie war dein Besuch?';
 }

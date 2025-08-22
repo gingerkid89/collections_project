@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @total.
   ///
   /// In en, this message translates to:
-  /// **'Total'**
+  /// **'Total:'**
   String get total;
 
   /// No description provided for @progress.
@@ -487,6 +487,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A beautiful app for collecting and tracking special places you visit.'**
   String get aboutDescription;
+
+  /// No description provided for @visitDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit: {placeName}'**
+  String visitDetails(Object placeName);
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @visitInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Information'**
+  String get visitInformation;
+
+  /// No description provided for @date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get date;
+
+  /// No description provided for @time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get time;
+
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
+  /// No description provided for @notSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get notSpecified;
+
+  /// No description provided for @overallRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall Rating'**
+  String get overallRating;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'required'**
+  String get required;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get notes;
+
+  /// No description provided for @visitNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your visit?'**
+  String get visitNotes;
+
+  /// No description provided for @visitedExhibitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Visited Exhibitions'**
+  String get visitedExhibitions;
+
+  /// No description provided for @noExhibitionsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No exhibition information available'**
+  String get noExhibitionsAvailable;
+
+  /// No description provided for @temporaryExhibition.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary Exhibition'**
+  String get temporaryExhibition;
+
+  /// No description provided for @permanentExhibition.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent Exhibition'**
+  String get permanentExhibition;
+
+  /// No description provided for @additionalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Information'**
+  String get additionalInformation;
+
+  /// No description provided for @audioGuideUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Used Audio Guide'**
+  String get audioGuideUsed;
+
+  /// No description provided for @giftShopVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'Visited Gift Shop'**
+  String get giftShopVisited;
+
+  /// No description provided for @hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get hours;
+
+  /// No description provided for @minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get minutes;
+
+  /// No description provided for @visitSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit saved successfully!'**
+  String get visitSavedSuccessfully;
+
+  /// No description provided for @errorSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving: {error}'**
+  String errorSaving(Object error);
+
+  /// No description provided for @museumVisitSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum visit saved successfully!'**
+  String get museumVisitSaved;
+
+  /// No description provided for @visitSavedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit at {placeName} saved!'**
+  String visitSavedAt(Object placeName);
+
+  /// No description provided for @currentExhibitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Exhibitions'**
+  String get currentExhibitions;
+
+  /// No description provided for @permanentCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent Collections'**
+  String get permanentCollections;
+
+  /// No description provided for @exhibitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Exhibitions'**
+  String get exhibitions;
+
+  /// No description provided for @equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment & Service'**
+  String get equipment;
+
+  /// No description provided for @audioGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Guide'**
+  String get audioGuide;
+
+  /// No description provided for @giftShop.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift Shop'**
+  String get giftShop;
+
+  /// No description provided for @wheelchairAccessible.
+  ///
+  /// In en, this message translates to:
+  /// **'Wheelchair Accessible'**
+  String get wheelchairAccessible;
+
+  /// No description provided for @visitDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Duration'**
+  String get visitDuration;
+
+  /// No description provided for @museumVisitNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your museum visit?'**
+  String get museumVisitNotes;
+
+  /// No description provided for @addNewVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Visit'**
+  String get addNewVisit;
+
+  /// No description provided for @noVisitsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits yet'**
+  String get noVisitsYet;
+
+  /// No description provided for @addFirstVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first visit!'**
+  String get addFirstVisit;
+
+  /// No description provided for @dishesOrdered.
+  ///
+  /// In en, this message translates to:
+  /// **'Dishes Ordered'**
+  String get dishesOrdered;
+
+  /// No description provided for @availableDishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Dishes'**
+  String get availableDishes;
+
+  /// No description provided for @selectedDishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected Dishes:'**
+  String get selectedDishes;
+
+  /// No description provided for @costs.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs'**
+  String get costs;
+
+  /// No description provided for @dishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Dishes:'**
+  String get dishes;
+
+  /// No description provided for @tip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip:'**
+  String get tip;
+
+  /// No description provided for @other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other:'**
+  String get other;
+
+  /// No description provided for @restaurantVisitNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your visit?'**
+  String get restaurantVisitNotes;
 }
 
 class _AppLocalizationsDelegate

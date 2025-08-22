@@ -68,9 +68,10 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
         });
         
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Besuch bei ${location.name} gespeichert!'),
+              content: Text(l10n.visitSavedAt(location.name)),
               backgroundColor: Colors.green,
             ),
           );

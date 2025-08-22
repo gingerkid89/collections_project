@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/museum.dart';
 import '../../models/visit.dart';
 import '../../models/visit_activity.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddMuseumVisitDialog extends StatefulWidget {
   final Museum museum;
@@ -56,17 +57,19 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text('Besuch: ${widget.museum.name}'),
+        title: Text(l10n.visitDetails(widget.museum.name)),
         backgroundColor: Colors.purple,
         foregroundColor: Colors.white,
         actions: [
           TextButton(
             onPressed: canSave ? _saveVisit : null,
-            child: const Text(
-              'Speichern',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            child: Text(
+              l10n.save,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -84,6 +87,8 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   }
 
   Widget _buildBasicVisitSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -91,9 +96,9 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Besuchsinformationen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.visitInformation,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             
@@ -103,7 +108,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
                 Expanded(
                   child: ListTile(
                     leading: const Icon(Icons.calendar_today),
-                    title: const Text('Datum'),
+                    title: Text(l10n.date),
                     subtitle: Text('${selectedDate.day}.${selectedDate.month}.${selectedDate.year}'),
                     onTap: _selectDate,
                   ),
@@ -111,7 +116,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
                 Expanded(
                   child: ListTile(
                     leading: const Icon(Icons.access_time),
-                    title: const Text('Uhrzeit'),
+                    title: Text(l10n.time),
                     subtitle: Text('${selectedTime.hour}:${selectedTime.minute.toString().padLeft(2, '0')}'),
                     onTap: _selectTime,
                   ),
@@ -123,16 +128,16 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.timer),
-              title: const Text('Besuchsdauer'),
+              title: Text(l10n.visitDuration),
               subtitle: Text(visitDuration != null ? 
                 '${visitDuration!.inHours}h ${visitDuration!.inMinutes % 60}min' : 
-                'Nicht angegeben'),
+                l10n.notSpecified),
               onTap: _selectDuration,
             ),
             
             // Rating
             const SizedBox(height: 16),
-            const Text('Gesamtbewertung *', style: TextStyle(fontWeight: FontWeight.w500)),
+            Text('${l10n.overallRating} *', style: const TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
               children: List.generate(5, (index) {
@@ -151,10 +156,10 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                hintText: 'Wie war dein Museumsbesuch?',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.notes,
+                hintText: l10n.museumVisitNotes,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -165,6 +170,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   }
 
   Widget _buildExhibitionsSection() {
+    final l10n = AppLocalizations.of(context)!;
     final allExhibitions = [
       ...widget.museum.currentExhibitions,
       ...widget.museum.permanentCollections,
@@ -177,19 +183,19 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.palette, color: Colors.purple),
-                SizedBox(width: 8),
-                Text('Besuchte Ausstellungen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Icon(Icons.palette, color: Colors.purple),
+                const SizedBox(width: 8),
+                Text(l10n.visitedExhibitions, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
             
             if (allExhibitions.isEmpty)
-              const Text(
-                'Keine Ausstellungsinformationen verfügbar',
-                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+              Text(
+                l10n.noExhibitionsAvailable,
+                style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
               )
             else
               Column(
@@ -199,7 +205,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
                   
                   return CheckboxListTile(
                     title: Text(exhibition),
-                    subtitle: Text(isTemporary ? 'Sonderausstellung' : 'Dauerausstellung'),
+                    subtitle: Text(isTemporary ? l10n.temporaryExhibition : l10n.permanentExhibition),
                     value: isSelected,
                     onChanged: (value) {
                       setState(() {
@@ -224,6 +230,8 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   }
 
   Widget _buildMuseumSpecificSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -231,18 +239,18 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.purple),
-                SizedBox(width: 8),
-                Text('Zusätzliche Informationen', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Icon(Icons.info_outline, color: Colors.purple),
+                const SizedBox(width: 8),
+                Text(l10n.additionalInformation, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
             
             if (widget.museum.hasAudioGuide)
               CheckboxListTile(
-                title: const Text('Audio-Guide verwendet'),
+                title: Text(l10n.audioGuideUsed),
                 value: hadAudioGuide,
                 onChanged: (value) => setState(() => hadAudioGuide = value ?? false),
                 secondary: const Icon(Icons.headphones, color: Colors.purple),
@@ -250,7 +258,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
             
             if (widget.museum.hasGiftShop)
               CheckboxListTile(
-                title: const Text('Museumsshop besucht'),
+                title: Text(l10n.giftShopVisited),
                 value: visitedGiftShop,
                 onChanged: (value) => setState(() => visitedGiftShop = value ?? false),
                 secondary: const Icon(Icons.shopping_bag, color: Colors.purple),
@@ -285,20 +293,21 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   }
 
   void _selectDuration() async {
+    final l10n = AppLocalizations.of(context)!;
     int hours = visitDuration?.inHours ?? 2;
     int minutes = visitDuration?.inMinutes.remainder(60) ?? 0;
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Besuchsdauer'),
+        title: Text(l10n.visitDuration),
         content: StatefulBuilder(
           builder: (context, setDialogState) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  const Text('Stunden: '),
+                  Text('${l10n.hours}: '),
                   Expanded(
                     child: Slider(
                       value: hours.toDouble(),
@@ -313,7 +322,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
               ),
               Row(
                 children: [
-                  const Text('Minuten: '),
+                  Text('${l10n.minutes}: '),
                   Expanded(
                     child: Slider(
                       value: minutes.toDouble(),
@@ -332,7 +341,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -349,20 +358,22 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   }
 
   void _saveVisit() {
+    final l10n = AppLocalizations.of(context)!;
+    
     try {
       final visit = _createVisit();
       Navigator.of(context).pop(visit);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Museumsbesuch erfolgreich gespeichert!'),
+        SnackBar(
+          content: Text(l10n.museumVisitSaved),
           backgroundColor: Colors.purple,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Fehler beim Speichern: $e'),
+          content: Text(l10n.errorSaving(e.toString())),
           backgroundColor: Colors.red,
         ),
       );

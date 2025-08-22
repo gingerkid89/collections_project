@@ -5,6 +5,7 @@ import '../../models/restaurant.dart';
 import '../../models/menu_item.dart';
 import '../../models/visit.dart';
 import '../../models/visit_activity.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddRestaurantVisitDialog extends StatefulWidget {
   final Restaurant restaurant;
@@ -61,17 +62,19 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: Text('Besuch: ${widget.restaurant.name}'),
+        title: Text(l10n.visitDetails(widget.restaurant.name)),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
           TextButton(
             onPressed: canSave ? _saveVisit : null,
-            child: const Text(
-              'Speichern',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            child: Text(
+              l10n.save,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -354,15 +357,15 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
       Navigator.of(context).pop(visit);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Besuch erfolgreich gespeichert!'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.visitSavedSuccessfully),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Fehler beim Speichern: $e'),
+          content: Text(AppLocalizations.of(context)!.errorSaving(e.toString())),
           backgroundColor: Colors.red,
         ),
       );

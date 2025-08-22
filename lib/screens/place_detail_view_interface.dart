@@ -8,6 +8,7 @@ import '../models/place_statistic.dart';
 import '../models/restaurant.dart';
 import '../models/museum.dart';
 import '../providers/visits_provider.dart';
+import '../l10n/app_localizations.dart';
 // Dynamic imports to avoid circular dependency issues
 // import 'place_detail_implementations/restaurant_detail_view.dart';
 // import 'place_detail_implementations/museum_detail_view.dart';
@@ -306,6 +307,8 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildOverviewTab() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -320,7 +323,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
             child: ElevatedButton.icon(
               onPressed: () => _addVisit(),
               icon: const Icon(Icons.add),
-              label: const Text('Neuen Besuch hinzufügen'),
+              label: Text(l10n.addNewVisit),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -360,18 +363,19 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   Widget _buildVisitsTab() {
     return Consumer<VisitsProvider>(
       builder: (context, visitsProvider, child) {
+        final l10n = AppLocalizations.of(context)!;
         final visits = visitsProvider.getVisitsForPlace(widget.placeView.place.id);
 
         return visits.isEmpty
-            ? const Center(
+            ? Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.calendar_today, size: 64, color: Colors.grey),
-              SizedBox(height: 16),
-              Text('Noch keine Besuche'),
-              SizedBox(height: 8),
-              Text('Fügen Sie Ihren ersten Besuch hinzu!'),
+              const Icon(Icons.calendar_today, size: 64, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(l10n.noVisitsYet),
+              const SizedBox(height: 8),
+              Text(l10n.addFirstVisit),
             ],
           ),
         )
