@@ -151,7 +151,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get clearCache => 'Cache leeren';
 
   @override
-  String get privacy => 'Datenschutz';
+  String get privacy => 'Privatsphäre';
 
   @override
   String get dataUsage => 'Wie wir deine Daten nutzen';
@@ -326,7 +326,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addNewVisit => 'Neuen Besuch hinzufügen';
 
   @override
-  String get noVisitsYet => 'Noch keine Besuche';
+  String get noVisitsYet => 'Noch keine Besuche aufgezeichnet';
 
   @override
   String get addFirstVisit => 'Fügen Sie Ihren ersten Besuch hinzu!';
@@ -344,7 +344,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get costs => 'Kosten';
 
   @override
-  String get dishes => 'Gerichte:';
+  String get dishesWithColon => 'Gerichte:';
 
   @override
   String get tip => 'Trinkgeld:';
@@ -354,4 +354,179 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get restaurantVisitNotes => 'Wie war dein Besuch?';
+
+  @override
+  String get dishes => 'Gerichte';
+
+  @override
+  String get averagePrice => 'Ø Preis';
+
+  @override
+  String get averageRating => 'Ø Bewertung';
+
+  @override
+  String get restaurantInfo => 'Restaurant Info';
+
+  @override
+  String get popularDishes => 'Beliebte Gerichte';
+
+  @override
+  String get cuisine => 'Küche';
+
+  @override
+  String get priceCategory => 'Preiskategorie';
+
+  @override
+  String get reservationsAvailable => 'Reservierungen möglich';
+
+  @override
+  String get deliveryService => 'Lieferservice';
+
+  @override
+  String get takeout => 'Abholung';
+
+  @override
+  String get priceRange => 'Preisklasse';
+
+  @override
+  String get noMenuInfoAvailable => 'Keine Menü-Informationen verfügbar';
+
+  @override
+  String get notVisitedYet => 'Noch nicht besucht';
+
+  @override
+  String get menu => 'Menü';
+
+  @override
+  String get visits => 'Besuche';
+
+  @override
+  String get ticketPrice => 'Eintritt';
+
+  @override
+  String get showAllExhibitions => 'Alle Ausstellungen anzeigen';
+
+  @override
+  String get myRating => 'Meine Bewertung';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get museumInfo => 'Museum Info';
+
+  @override
+  String get category => 'Kategorie';
+
+  @override
+  String get noCurrentExhibitions => 'Keine aktuellen Sonderausstellungen';
+
+  @override
+  String get art => 'Kunst';
+
+  @override
+  String get history => 'Geschichte';
+
+  @override
+  String get science => 'Wissenschaft';
+
+  @override
+  String get technology => 'Technik';
+
+  @override
+  String get nature => 'Naturkunde';
+
+  @override
+  String get archaeology => 'Archäologie';
+
+  @override
+  String get noExhibitionInfoAvailable =>
+      'Keine Ausstellungsinformationen verfügbar';
+
+  @override
+  String get overview => 'Übersicht';
+
+  @override
+  String get alreadyVisited => 'Schon besucht';
+
+  @override
+  String get photos => 'Fotos';
+
+  @override
+  String get addPhoto => 'Foto hinzufügen';
+
+  @override
+  String get takePhoto => 'Foto aufnehmen';
+
+  @override
+  String get chooseFromGallery => 'Aus Galerie wählen';
+
+  @override
+  String get removePhoto => 'Foto entfernen';
+
+  @override
+  String get recentVisits => 'Letzte Besuche';
+
+  @override
+  String get myVisits => 'Meine Besuche';
+
+  @override
+  String get publicVisits => 'Öffentliche Besuche';
+
+  @override
+  String get startExploring =>
+      'Beginne zu erkunden, um deine Besuche hier zu sehen';
+
+  @override
+  String get noPublicVisits => 'Keine öffentlichen Besuche verfügbar';
+
+  @override
+  String get comingSoon => 'Bald verfügbar - erkunde was andere entdeckt haben';
+
+  @override
+  String get privateVisits => 'Private Besuche';
+
+  @override
+  String get publicVisitsPlace => 'Öffentliche Besuche';
+
+  @override
+  String get noPrivateVisits => 'Noch keine privaten Besuche';
+
+  @override
+  String get noPublicVisitsForPlace =>
+      'Keine öffentlichen Besuche für diesen Ort';
+
+  @override
+  String get switchToPublic =>
+      'Wechsle zu öffentlichen Besuchen um zu sehen was andere geteilt haben';
+
+  @override
+  String get switchToPrivate =>
+      'Wechsle zu privaten Besuchen um deine persönliche Historie zu sehen';
+
+  @override
+  String get publicData => 'Öffentliche Daten';
+
+  @override
+  String get privateData => 'Private Daten';
+
+  @override
+  String get privacyDescription =>
+      'Wählen Sie, ob Ihre Besuchsdaten öffentlich geteilt oder privat gehalten werden sollen';
+
+  @override
+  String get photoAdded => 'Foto erfolgreich hinzugefügt';
+
+  @override
+  String get photoRemoved => 'Foto entfernt';
+
+  @override
+  String get errorLoadingPhoto => 'Fehler beim Laden des Fotos';
+
+  @override
+  String get publicDataDescription =>
+      'Deine Bewertungen können von anderen gesehen werden';
+
+  @override
+  String get privateDataDescription => 'Nur du kannst deine Daten sehen';
 }

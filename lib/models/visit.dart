@@ -13,6 +13,8 @@ class Visit {
   final double? totalCost;
   final List<VisitActivity> activities;
   final Map<String, dynamic> metadata; // Place-specific data
+  final List<String> photoUrls; // Photo file paths/URLs
+  final bool isPublic; // Whether visit data is public or private
 
   const Visit({
     required this.id,
@@ -25,6 +27,8 @@ class Visit {
     this.totalCost,
     this.activities = const [],
     this.metadata = const {},
+    this.photoUrls = const [],
+    this.isPublic = true, // Default to public
   });
 
   // Factory constructor for creating visits
@@ -38,6 +42,8 @@ class Visit {
     double? totalCost,
     List<VisitActivity>? activities,
     Map<String, dynamic>? metadata,
+    List<String>? photoUrls,
+    bool? isPublic,
   }) {
     return Visit(
       id: _generateId(),
@@ -50,6 +56,8 @@ class Visit {
       totalCost: totalCost,
       activities: activities ?? [],
       metadata: metadata ?? {},
+      photoUrls: photoUrls ?? [],
+      isPublic: isPublic ?? true,
     );
   }
 
@@ -65,6 +73,8 @@ class Visit {
       'totalCost': totalCost,
       'activities': activities.map((activity) => activity.toJson()).toList(),
       'metadata': metadata,
+      'photoUrls': photoUrls,
+      'isPublic': isPublic,
     };
   }
 
@@ -84,6 +94,8 @@ class Visit {
           ?.map((activity) => VisitActivityFactory.fromJson(activity as Map<String, dynamic>))
           .toList() ?? [],
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      photoUrls: List<String>.from(json['photoUrls'] ?? []),
+      isPublic: json['isPublic'] ?? true,
     );
   }
 
@@ -98,6 +110,8 @@ class Visit {
     double? totalCost,
     List<VisitActivity>? activities,
     Map<String, dynamic>? metadata,
+    List<String>? photoUrls,
+    bool? isPublic,
   }) {
     return Visit(
       id: id ?? this.id,
@@ -110,6 +124,8 @@ class Visit {
       totalCost: totalCost ?? this.totalCost,
       activities: activities ?? this.activities,
       metadata: metadata ?? this.metadata,
+      photoUrls: photoUrls ?? this.photoUrls,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 
@@ -135,6 +151,8 @@ class Visit {
   }
 
   bool get hasRating => overallRating != null && overallRating! > 0;
+  bool get hasPhotos => photoUrls.isNotEmpty;
+  int get photoCount => photoUrls.length;
 
   // Rating validation
   static bool isValidRating(double? rating) {

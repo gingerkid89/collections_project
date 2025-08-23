@@ -365,7 +365,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacy.
   ///
   /// In en, this message translates to:
-  /// **'Privacy Policy'**
+  /// **'Privacy'**
   String get privacy;
 
   /// No description provided for @dataUsage.
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// No description provided for @noVisitsYet.
   ///
   /// In en, this message translates to:
-  /// **'No visits yet'**
+  /// **'No visits recorded yet'**
   String get noVisitsYet;
 
   /// No description provided for @addFirstVisit.
@@ -728,11 +728,11 @@ abstract class AppLocalizations {
   /// **'Costs'**
   String get costs;
 
-  /// No description provided for @dishes.
+  /// No description provided for @dishesWithColon.
   ///
   /// In en, this message translates to:
   /// **'Dishes:'**
-  String get dishes;
+  String get dishesWithColon;
 
   /// No description provided for @tip.
   ///
@@ -751,6 +751,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'How was your visit?'**
   String get restaurantVisitNotes;
+
+  /// No description provided for @dishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Dishes'**
+  String get dishes;
+
+  /// No description provided for @averagePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Price'**
+  String get averagePrice;
+
+  /// No description provided for @averageRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Rating'**
+  String get averageRating;
+
+  /// No description provided for @restaurantInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant Info'**
+  String get restaurantInfo;
+
+  /// No description provided for @popularDishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular Dishes'**
+  String get popularDishes;
+
+  /// No description provided for @cuisine.
+  ///
+  /// In en, this message translates to:
+  /// **'Cuisine'**
+  String get cuisine;
+
+  /// No description provided for @priceCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Category'**
+  String get priceCategory;
+
+  /// No description provided for @reservationsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservations Available'**
+  String get reservationsAvailable;
+
+  /// No description provided for @deliveryService.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery Service'**
+  String get deliveryService;
+
+  /// No description provided for @takeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Takeout'**
+  String get takeout;
+
+  /// No description provided for @priceRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Range'**
+  String get priceRange;
+
+  /// No description provided for @noMenuInfoAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No menu information available'**
+  String get noMenuInfoAvailable;
+
+  /// No description provided for @notVisitedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not visited yet'**
+  String get notVisitedYet;
+
+  /// No description provided for @menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menu;
+
+  /// No description provided for @visits.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits'**
+  String get visits;
+
+  /// No description provided for @ticketPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Admission'**
+  String get ticketPrice;
+
+  /// No description provided for @showAllExhibitions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all exhibitions'**
+  String get showAllExhibitions;
+
+  /// No description provided for @myRating.
+  ///
+  /// In en, this message translates to:
+  /// **'My Rating'**
+  String get myRating;
+
+  /// No description provided for @info.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get info;
+
+  /// No description provided for @museumInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Museum Info'**
+  String get museumInfo;
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @noCurrentExhibitions.
+  ///
+  /// In en, this message translates to:
+  /// **'No current special exhibitions'**
+  String get noCurrentExhibitions;
+
+  /// No description provided for @art.
+  ///
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get art;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @science.
+  ///
+  /// In en, this message translates to:
+  /// **'Science'**
+  String get science;
+
+  /// No description provided for @technology.
+  ///
+  /// In en, this message translates to:
+  /// **'Technology'**
+  String get technology;
+
+  /// No description provided for @nature.
+  ///
+  /// In en, this message translates to:
+  /// **'Natural History'**
+  String get nature;
+
+  /// No description provided for @archaeology.
+  ///
+  /// In en, this message translates to:
+  /// **'Archaeology'**
+  String get archaeology;
+
+  /// No description provided for @noExhibitionInfoAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No exhibition information available'**
+  String get noExhibitionInfoAvailable;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @alreadyVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'Already visited'**
+  String get alreadyVisited;
+
+  /// No description provided for @photos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get photos;
+
+  /// No description provided for @addPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Photo'**
+  String get addPhoto;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @removePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Photo'**
+  String get removePhoto;
+
+  /// No description provided for @recentVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Visits'**
+  String get recentVisits;
+
+  /// No description provided for @myVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'My Visits'**
+  String get myVisits;
+
+  /// No description provided for @publicVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Visits'**
+  String get publicVisits;
+
+  /// No description provided for @startExploring.
+  ///
+  /// In en, this message translates to:
+  /// **'Start exploring to see your visits here'**
+  String get startExploring;
+
+  /// No description provided for @noPublicVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'No public visits available'**
+  String get noPublicVisits;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon - explore what others have discovered'**
+  String get comingSoon;
+
+  /// No description provided for @privateVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Visits'**
+  String get privateVisits;
+
+  /// No description provided for @publicVisitsPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Visits'**
+  String get publicVisitsPlace;
+
+  /// No description provided for @noPrivateVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'No private visits yet'**
+  String get noPrivateVisits;
+
+  /// No description provided for @noPublicVisitsForPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'No public visits for this place'**
+  String get noPublicVisitsForPlace;
+
+  /// No description provided for @switchToPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to public visits to see what others shared'**
+  String get switchToPublic;
+
+  /// No description provided for @switchToPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to private visits to see your personal history'**
+  String get switchToPrivate;
+
+  /// No description provided for @publicData.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Data'**
+  String get publicData;
+
+  /// No description provided for @privateData.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Data'**
+  String get privateData;
+
+  /// No description provided for @privacyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose if your visit data should be shared publicly or kept private'**
+  String get privacyDescription;
+
+  /// No description provided for @photoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo added successfully'**
+  String get photoAdded;
+
+  /// No description provided for @photoRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo removed'**
+  String get photoRemoved;
+
+  /// No description provided for @errorLoadingPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading photo'**
+  String get errorLoadingPhoto;
+
+  /// No description provided for @publicDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reviews can be seen by others'**
+  String get publicDataDescription;
+
+  /// No description provided for @privateDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you can see your data'**
+  String get privateDataDescription;
 }
 
 class _AppLocalizationsDelegate

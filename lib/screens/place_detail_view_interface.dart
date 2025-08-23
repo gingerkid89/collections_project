@@ -85,7 +85,7 @@ abstract class PlaceDetailViewInterface extends StatefulWidget {
   Widget buildSpecialTab(BuildContext context);
   String get specialTabLabel;
   String get specialTabIcon;
-  List<PlaceStatistic> getSpecificStats();
+  List<PlaceStatistic> getSpecificStats(BuildContext? context);
   List<Widget> getOverviewContent(BuildContext context);
   Widget? getFloatingActionButton(BuildContext context);
 }
@@ -108,6 +108,7 @@ class GenericPlaceDetailView extends StatefulWidget {
 
 class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   int _currentTabIndex = 0;
+  bool _showPrivateVisits = true; // Default to private visits
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +223,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
 
   Widget _buildCollectionStatus() {
     final status = widget.placeView.collectionStatus;
-    final specificStats = widget.placeView.getSpecificStats();
+    final specificStats = widget.placeView.getSpecificStats(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -248,7 +249,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    status.isVisited ? 'Schon besucht' : 'Noch nicht besucht',
+                    status.isVisited ? AppLocalizations.of(context)!.alreadyVisited : AppLocalizations.of(context)!.notVisitedYet,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -273,10 +274,10 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Besuche', status.visitCount.toString()),
-              ...specificStats.map((stat) => _buildStatItem(stat.label, stat.value.toString())),
+              _buildStatItem(AppLocalizations.of(context)!.visits, status.visitCount.toString()),
+              ...specificStats.map((stat) => _buildStatItem(stat.label, stat.formattedValue)),
               if (status.userRating != null)
-                _buildStatItem('Meine Bewertung', status.userRating!.toStringAsFixed(1)),
+                _buildStatItem(AppLocalizations.of(context)!.myRating, status.userRating!.toStringAsFixed(1)),
             ],
           ),
         ],
@@ -364,30 +365,180 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     return Consumer<VisitsProvider>(
       builder: (context, visitsProvider, child) {
         final l10n = AppLocalizations.of(context)!;
-        final visits = visitsProvider.getVisitsForPlace(widget.placeView.place.id);
+        final allVisits = visitsProvider.getVisitsForPlace(widget.placeView.place.id);
+        
+        // Filter visits based on privacy setting
+        final privateVisits = allVisits.where((visit) => !visit.isPublic).toList();
+        final publicVisits = allVisits.where((visit) => visit.isPublic).toList();
+        
+        // Auto-switch to public if no private visits and user hasn't manually selected
+        if (privateVisits.isEmpty && publicVisits.isNotEmpty && _showPrivateVisits) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {
+                _showPrivateVisits = false;
+              });
+            }
+          });
+        }
+        
+        final visitsToShow = _showPrivateVisits ? privateVisits : publicVisits;
 
-        return visits.isEmpty
-            ? Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.calendar_today, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
-              Text(l10n.noVisitsYet),
-              const SizedBox(height: 8),
-              Text(l10n.addFirstVisit),
-            ],
-          ),
-        )
-            : ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: visits.length,
-          itemBuilder: (context, index) {
-            final visit = visits[index]; // Already sorted newest first in provider
-            return _buildVisitCard(visit);
-          },
+        return Column(
+          children: [
+            // Toggle buttons
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildToggleButton(
+                      label: l10n.privateVisits,
+                      isActive: _showPrivateVisits,
+                      onTap: () => setState(() => _showPrivateVisits = true),
+                      count: privateVisits.length,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildToggleButton(
+                      label: l10n.publicVisitsPlace,
+                      isActive: !_showPrivateVisits,
+                      onTap: () => setState(() => _showPrivateVisits = false),
+                      count: publicVisits.length,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Visit list or empty state
+            Expanded(
+              child: visitsToShow.isEmpty
+                  ? _buildEmptyVisitsState(l10n, _showPrivateVisits, privateVisits.isEmpty, publicVisits.isEmpty)
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: visitsToShow.length,
+                      itemBuilder: (context, index) {
+                        final visit = visitsToShow[index];
+                        return _buildVisitCard(visit);
+                      },
+                    ),
+            ),
+          ],
         );
       },
+    );
+  }
+
+  Widget _buildToggleButton({
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+    required int count,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF3B82F6) : const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(8),
+          border: isActive 
+              ? null 
+              : Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: isActive ? Colors.white : const Color(0xFF6B7280),
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                fontSize: 14,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white.withOpacity(0.2) : const Color(0xFF9CA3AF),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  count.toString(),
+                  style: TextStyle(
+                    color: isActive ? Colors.white : Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyVisitsState(AppLocalizations l10n, bool showingPrivate, bool hasNoPrivate, bool hasNoPublic) {
+    IconData icon;
+    String title;
+    String subtitle;
+    
+    if (showingPrivate) {
+      icon = Icons.lock;
+      title = l10n.noPrivateVisits;
+      subtitle = hasNoPublic ? l10n.addFirstVisit : l10n.switchToPublic;
+    } else {
+      icon = Icons.public_off;
+      title = l10n.noPublicVisitsForPlace;
+      subtitle = hasNoPrivate ? l10n.comingSoon : l10n.switchToPrivate;
+    }
+    
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: Icon(
+              icon,
+              size: 40,
+              color: const Color(0xFF9CA3AF),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF111827),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF6B7280),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -402,12 +553,49 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  _formatDate(visit.date),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      _formatDate(visit.date),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: visit.isPublic 
+                            ? const Color(0xFFDCFCE7)
+                            : const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            visit.isPublic ? Icons.public : Icons.lock,
+                            size: 10,
+                            color: visit.isPublic 
+                                ? const Color(0xFF16A34A)
+                                : const Color(0xFF6B7280),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            visit.isPublic ? 'Public' : 'Private',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                              color: visit.isPublic 
+                                  ? const Color(0xFF16A34A)
+                                  : const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 if (visit.overallRating != null)
                   Row(
@@ -552,21 +740,21 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       currentIndex: _currentTabIndex,
       onTap: (index) => setState(() => _currentTabIndex = index),
       items: [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
-          label: 'Übersicht',
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.dashboard),
+          label: AppLocalizations.of(context)!.overview,
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.restaurant_menu),
           label: widget.placeView.specialTabLabel,
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
-          label: 'Besuche',
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.calendar_today),
+          label: AppLocalizations.of(context)!.visits,
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.info),
-          label: 'Info',
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.info),
+          label: AppLocalizations.of(context)!.info,
         ),
       ],
     );

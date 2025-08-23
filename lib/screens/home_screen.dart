@@ -6,6 +6,7 @@ import '../models/collection_base.dart';
 import '../models/location.dart';
 import 'collection_detail_screen.dart';
 import 'settings_screen.dart';
+import 'recent_visits_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final mcdonalds = CollectionFactory.createMcDonalds();
     final starbucks = CollectionFactory.createStarbucks();
     final museums = CollectionFactory.createMuseums();
+    final italianRestaurants = CollectionFactory.createItalianRestaurants();
+    final artMuseums = CollectionFactory.createArtMuseums();
+    final scienceMuseums = CollectionFactory.createScienceMuseums();
 
     mcdonalds.locations.addAll([
       Location(
@@ -100,10 +104,165 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.5,
         isVisited: true,
       ),
+      Location(
+        id: 'museum_2',
+        name: 'Wallraf-Richartz-Museum',
+        address: 'Obenmarspforten 40, 50667 Köln',
+        latitude: 50.9395,
+        longitude: 6.9598,
+        imageUrls: ['https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=300&h=300&fit=crop'],
+        features: ['Classical Art', 'Audio Guide', 'Café'],
+        averageRating: 4.3,
+      ),
+      Location(
+        id: 'museum_3',
+        name: 'Romano-Germanisches Museum',
+        address: 'Roncalliplatz 4, 50667 Köln',
+        latitude: 50.9413,
+        longitude: 6.9581,
+        imageUrls: ['https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=300&h=300&fit=crop'],
+        features: ['Roman History', 'Mosaics', 'Audio Guide'],
+        averageRating: 4.4,
+        isVisited: true,
+      ),
+    ]);
+
+    // Italian Restaurants
+    italianRestaurants.locations.addAll([
+      Location(
+        id: 'italian_1',
+        name: 'La Dolce Vita',
+        address: 'Aachener Str. 15, 50674 Köln',
+        latitude: 50.9351,
+        longitude: 6.9255,
+        imageUrls: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=300&h=300&fit=crop'],
+        features: ['Authentic Pizza', 'Wine Selection', 'Terrace'],
+        averageRating: 4.6,
+        isVisited: true,
+      ),
+      Location(
+        id: 'italian_2',
+        name: 'Osteria Il Convivio',
+        address: 'Ehrenstr. 77, 50672 Köln',
+        latitude: 50.9312,
+        longitude: 6.9389,
+        imageUrls: ['https://images.unsplash.com/photo-1579952363873-27d3bfad9c0d?w=300&h=300&fit=crop'],
+        features: ['Fresh Pasta', 'Italian Wine', 'Romantic Setting'],
+        averageRating: 4.7,
+      ),
+      Location(
+        id: 'italian_3',
+        name: 'Trattoria da Nino',
+        address: 'Venloer Str. 45, 50672 Köln',
+        latitude: 50.9442,
+        longitude: 6.9267,
+        imageUrls: ['https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=300&h=300&fit=crop'],
+        features: ['Family Recipe', 'Homemade Pasta', 'Cozy Atmosphere'],
+        averageRating: 4.5,
+        isVisited: true,
+      ),
+      Location(
+        id: 'italian_4',
+        name: 'Ristorante San Remo',
+        address: 'Römerstr. 23, 50676 Köln',
+        latitude: 50.9356,
+        longitude: 6.9612,
+        imageUrls: ['https://images.unsplash.com/photo-1555992336-03a23981e3ba?w=300&h=300&fit=crop'],
+        features: ['Seafood Special', 'Italian Classics', 'Business Lunch'],
+        averageRating: 4.4,
+      ),
+      Location(
+        id: 'italian_5',
+        name: 'Pizzeria Mama Mia',
+        address: 'Zülpicher Str. 28, 50674 Köln',
+        latitude: 50.9298,
+        longitude: 6.9345,
+        imageUrls: ['https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&h=300&fit=crop'],
+        features: ['Wood Fired Pizza', 'Takeaway', 'Student Friendly'],
+        averageRating: 4.2,
+      ),
+    ]);
+
+
+    // Art Museums
+    artMuseums.locations.addAll([
+      Location(
+        id: 'art_museum_1',
+        name: 'Museum für Angewandte Kunst',
+        address: 'An der Rechtschule, 50667 Köln',
+        latitude: 50.9389,
+        longitude: 6.9634,
+        imageUrls: ['https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=300&fit=crop'],
+        features: ['Design', 'Decorative Arts', 'Contemporary'],
+        averageRating: 4.2,
+        isVisited: true,
+      ),
+      Location(
+        id: 'art_museum_2',
+        name: 'Kölnischer Kunstverein',
+        address: 'Drususgasse 1-5, 50667 Köln',
+        latitude: 50.9401,
+        longitude: 6.9567,
+        imageUrls: ['https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop'],
+        features: ['Contemporary Art', 'Exhibitions', 'Artist Talks'],
+        averageRating: 4.3,
+      ),
+      Location(
+        id: 'art_museum_3',
+        name: 'Käthe Kollwitz Museum',
+        address: 'Neumarkt 18-24, 50667 Köln',
+        latitude: 50.9356,
+        longitude: 6.9472,
+        imageUrls: ['https://images.unsplash.com/photo-1577720643271-6760b5d4c52d?w=300&h=300&fit=crop'],
+        features: ['Sculpture', 'Prints', 'Historical Context'],
+        averageRating: 4.4,
+      ),
+    ]);
+
+    // Science Museums
+    scienceMuseums.locations.addAll([
+      Location(
+        id: 'science_museum_1',
+        name: 'Odysseum Köln',
+        address: 'Corintostr. 1, 51103 Köln',
+        latitude: 50.8901,
+        longitude: 7.0156,
+        imageUrls: ['https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=300&h=300&fit=crop'],
+        features: ['Interactive', 'Planetarium', 'Family Friendly'],
+        averageRating: 4.5,
+        isVisited: true,
+      ),
+      Location(
+        id: 'science_museum_2',
+        name: 'Deutsches Sport & Olympia Museum',
+        address: 'Im Zollhafen 1, 50678 Köln',
+        latitude: 50.9267,
+        longitude: 6.9656,
+        imageUrls: ['https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop'],
+        features: ['Sports History', 'Olympics', 'Interactive'],
+        averageRating: 4.3,
+      ),
+      Location(
+        id: 'science_museum_3',
+        name: 'Imhoff Chocolate Museum',
+        address: 'Am Schokoladenmuseum 1A, 50678 Köln',
+        latitude: 50.9312,
+        longitude: 6.9689,
+        imageUrls: ['https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=300&h=300&fit=crop'],
+        features: ['Chocolate Making', 'Tastings', 'Gift Shop'],
+        averageRating: 4.6,
+      ),
     ]);
 
     setState(() {
-      collections = [mcdonalds, starbucks, museums];
+      collections = [
+        mcdonalds, 
+        starbucks, 
+        italianRestaurants,
+        museums,
+        artMuseums,
+        scienceMuseums,
+      ];
     });
   }
 
@@ -129,40 +288,48 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.myCollections,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF111827),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.myCollections,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF111827),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.discoverAndCollect,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFF6B7280),
+                            const SizedBox(height: 4),
+                            Text(
+                              l10n.discoverAndCollect,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF6B7280),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       Row(
                         children: [
                           Container(
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF3B82F6),
-                              shape: BoxShape.circle,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(Icons.add, color: Colors.white),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const RecentVisitsScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.history, color: Color(0xFF6B7280)),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
@@ -426,7 +593,7 @@ class _CollectionCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        collection.visitedCount > 0 ? l10n.visitedToday : 'Not visited yet',
+                        collection.visitedCount > 0 ? l10n.visitedToday : l10n.notVisitedYet,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF6B7280),

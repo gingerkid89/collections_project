@@ -46,6 +46,32 @@ class CollectionFactory {
     );
   }
 
+  static MuseumCollection createArtMuseums() {
+    return MuseumCollection(
+      id: 'art_museums_001',
+      name: 'Kunstmuseen',
+      iconEmoji: '🎨',
+      description: 'Entdecke die Welt der Kunst',
+      createdAt: DateTime.now(),
+      category: 'art',
+      ticketInfo: 'Erwachsene: 8-15€, Ermäßigt: 4-8€',
+      locations: [],
+    );
+  }
+
+  static MuseumCollection createScienceMuseums() {
+    return MuseumCollection(
+      id: 'science_museums_001',
+      name: 'Wissenschaftsmuseen',
+      iconEmoji: '🔬',
+      description: 'Wissenschaft zum Anfassen',
+      createdAt: DateTime.now(),
+      category: 'science',
+      ticketInfo: 'Erwachsene: 12-18€, Kinder: 6-10€',
+      locations: [],
+    );
+  }
+
   static MuseumCollection createMuseums() {
     return MuseumCollection(
       id: 'museums_001',
@@ -58,4 +84,20 @@ class CollectionFactory {
       locations: [],
     );
   }
+
+  static RestaurantCollection createItalianRestaurants() {
+    return RestaurantCollection(
+      id: 'italian_001',
+      name: 'Italienische Restaurants',
+      iconEmoji: '🍝',
+      description: 'Entdecke authentische italienische Küche',
+      createdAt: DateTime.now(),
+      chainName: 'Italian Restaurants',
+      brandColor: '#008C45',
+      website: 'italien-restaurants.de',
+      menuCategories: ['Pasta', 'Pizza', 'Antipasti', 'Dolci', 'Vino'],
+      locations: [],
+    );
+  }
+
 }

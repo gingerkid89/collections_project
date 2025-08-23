@@ -1,8 +1,13 @@
 // lib/screens/dialogs/add_visit_interface.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../models/place.dart';
 import '../models/visit.dart';
+import '../l10n/app_localizations.dart';
 
 // ================================
 // ADD VISIT INTERFACE
@@ -34,6 +39,11 @@ mixin AddVisitMixin<T extends AddVisitInterface> on State<T> {
   final TextEditingController notesController = TextEditingController();
   double overallRating = 0.0;
 
+  // Photo and privacy data
+  List<String> photoUrls = [];
+  final ImagePicker _picker = ImagePicker();
+  bool isPublic = true; // Default to public
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +69,8 @@ mixin AddVisitMixin<T extends AddVisitInterface> on State<T> {
   String get visitNotes => notesController.text.trim();
   double get visitRating => overallRating;
   Duration? get visitDuration => selectedDuration;
+  List<String> get visitPhotos => photoUrls;
+  bool get visitIsPublic => isPublic;
 
   bool get canSave => overallRating > 0 && widget.validationError.isEmpty;
 
@@ -72,6 +84,8 @@ mixin AddVisitMixin<T extends AddVisitInterface> on State<T> {
         widget.buildContextSpecificSection(context),
         _buildNotesSection(),
         _buildOverallRatingSection(),
+        _buildPhotoSection(),
+        _buildPrivacySection(),
         _buildActionButtons(),
       ],
     );
@@ -244,6 +258,138 @@ mixin AddVisitMixin<T extends AddVisitInterface> on State<T> {
     );
   }
 
+  Widget _buildPhotoSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return buildSection(
+      title: l10n.photos,
+      icon: Icons.photo_camera,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Photo grid
+          if (photoUrls.isNotEmpty) ...[
+            SizedBox(
+              height: 120,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: photoUrls.length,
+                itemBuilder: (context, index) {
+                  return _buildPhotoTile(photoUrls[index], index);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // Add photo button
+          OutlinedButton.icon(
+            onPressed: _showPhotoOptions,
+            icon: const Icon(Icons.add_photo_alternate),
+            label: Text(l10n.addPhoto),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.green,
+              side: const BorderSide(color: Colors.green),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivacySection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return buildSection(
+      title: l10n.privacy,
+      icon: Icons.privacy_tip,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.privacyDescription,
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          
+          // Privacy options
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Radio<bool>(
+              value: true,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.green,
+            ),
+            title: Text(l10n.publicData),
+            subtitle: Text(l10n.publicDataDescription),
+            onTap: () => setState(() => isPublic = true),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Radio<bool>(
+              value: false,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.green,
+            ),
+            title: Text(l10n.privateData),
+            subtitle: Text(l10n.privateDataDescription),
+            onTap: () => setState(() => isPublic = false),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoTile(String photoPath, int index) {
+    return Container(
+      width: 100,
+      height: 100,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(photoPath),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.error, color: Colors.red),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => _removePhoto(index),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -387,6 +533,106 @@ mixin AddVisitMixin<T extends AddVisitInterface> on State<T> {
       case 5: return 'Ausgezeichnet';
       default: return 'Bewertung auswählen';
     }
+  }
+
+  void _showPhotoOptions() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(l10n.takePhoto),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(l10n.chooseFromGallery),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        final String savedPath = await _saveImageToLocal(image.path);
+        setState(() {
+          photoUrls.add(savedPath);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.photoAdded),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorLoadingPhoto),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<String> _saveImageToLocal(String imagePath) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String fileName = 'visit_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String localPath = path.join(appDir.path, 'visit_photos', fileName);
+    
+    // Create directory if it doesn't exist
+    final Directory dir = Directory(path.dirname(localPath));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    // Copy file to local storage
+    final File sourceFile = File(imagePath);
+    final File targetFile = await sourceFile.copy(localPath);
+    
+    return targetFile.path;
+  }
+
+  void _removePhoto(int index) {
+    setState(() {
+      photoUrls.removeAt(index);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.photoRemoved),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
 
   void _saveVisit() {

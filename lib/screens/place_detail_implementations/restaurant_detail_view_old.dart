@@ -16,13 +16,13 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
   }) : super(place: restaurant);
 
   @override
-  String get specialTabLabel => 'Menü';
+  String get specialTabLabel => 'Menï¿½';
 
   @override
   String get specialTabIcon => 'restaurant_menu';
 
   @override
-  List<PlaceStatistic> getSpecificStats() {
+  List<PlaceStatistic> getSpecificStats(BuildContext? context) {
     final avgCost = _calculateAverageCost();
     final dishCount = restaurant.menu.length;
     final avgRating = _calculateAverageMenuRating();
@@ -34,12 +34,12 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
       ),
       if (avgCost > 0)
         PlaceStatistic.currency(
-          label: 'Ø Preis',
+          label: 'ï¿½ Preis',
           value: avgCost,
         ),
       if (avgRating > 0)
         PlaceStatistic.number(
-          label: 'Ø Bewertung',
+          label: 'ï¿½ Bewertung',
           value: avgRating,
           unit: '',
         ),
@@ -92,10 +92,10 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('Küche', restaurant.cuisine),
+            _buildInfoRow('Kï¿½che', restaurant.cuisine),
             _buildInfoRow('Preiskategorie', restaurant.priceCategory),
             if (restaurant.hasReservation)
-              _buildFeatureChip('Reservierungen möglich'),
+              _buildFeatureChip('Reservierungen mï¿½glich'),
             if (restaurant.hasDelivery)
               _buildFeatureChip('Lieferservice'),
             if (restaurant.hasTakeout)
@@ -164,7 +164,7 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   const Text(
-                    'Küche',
+                    'Kï¿½che',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
@@ -209,7 +209,7 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
               children: [
                 Icon(Icons.restaurant_menu, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('Keine Menü-Informationen verfügbar'),
+                Text('Keine Menï¿½-Informationen verfï¿½gbar'),
               ],
             ),
           )
@@ -447,7 +447,7 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
       case 'pasta': return '<]';
       case 'pizza': return '<U';
       case 'desserts': return '<p';
-      case 'getränke': return '>d';
+      case 'getrï¿½nke': return '>d';
       case 'salate': return '>l';
       default: return '<}';
     }
@@ -457,11 +457,11 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
     switch (category.toLowerCase()) {
       case 'pasta': return '<]';
       case 'pizza': return '<U';
-      case 'vorspeisen': return '>Ä';
+      case 'vorspeisen': return '>ï¿½';
       case 'desserts': return '<p';
       case 'hauptgerichte': return '<V';
       case 'salate': return '>W';
-      case 'getränke': return '>d';
+      case 'getrï¿½nke': return '>d';
       default: return '<}';
     }
   }

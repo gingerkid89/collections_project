@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../models/museum.dart';
 import '../../models/place_statistic.dart';
+import '../../l10n/app_localizations.dart';
 import '../place_detail_view_interface.dart';
 import '../add_visit_implementations/add_museum_visit_dialog.dart';
 
@@ -21,19 +22,19 @@ class MuseumDetailView extends PlaceDetailViewInterface {
   String get specialTabIcon => 'palette';
 
   @override
-  List<PlaceStatistic> getSpecificStats() {
+  List<PlaceStatistic> getSpecificStats(BuildContext? context) {
     return [
       PlaceStatistic.number(
-        label: 'Aktuelle Ausstellungen',
+        label: context != null ? AppLocalizations.of(context!)!.currentExhibitions : 'Aktuelle Ausstellungen',
         value: museum.currentExhibitions.length,
       ),
       PlaceStatistic.number(
-        label: 'Sammlungen',
+        label: context != null ? AppLocalizations.of(context!)!.collections : 'Sammlungen',
         value: museum.permanentCollections.length,
       ),
       if (museum.ticketPrice.isNotEmpty)
         PlaceStatistic.text(
-          label: 'Eintritt',
+          label: context != null ? AppLocalizations.of(context!)!.ticketPrice : 'Eintritt',
           value: museum.ticketPrice,
         ),
     ];
@@ -65,49 +66,57 @@ class MuseumDetailView extends PlaceDetailViewInterface {
   }
 
   Widget _buildMuseumInfoCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.museum, color: Colors.purple),
-                const SizedBox(width: 8),
-                const Text(
-                  'Museum Info',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.museum, color: Colors.purple),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.museumInfo,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('Kategorie', _getCategoryDisplayName(museum.category)),
-            _buildInfoRow('Eintritt', museum.ticketPrice),
+                const SizedBox(height: 12),
+                _buildInfoRow(l10n.category, _getCategoryDisplayName(museum.category, context)),
+                _buildInfoRow(l10n.ticketPrice, museum.ticketPrice),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 4,
               children: [
                 if (museum.hasAudioGuide)
-                  _buildFeatureChip('Audio-Guide'),
+                  _buildFeatureChip(l10n.audioGuide),
                 if (museum.hasGiftShop)
-                  _buildFeatureChip('Museumsshop'),
+                  _buildFeatureChip(l10n.giftShop),
                 if (museum.isWheelchairAccessible)
-                  _buildFeatureChip('Barrierefrei'),
+                  _buildFeatureChip(l10n.wheelchairAccessible),
               ],
             ),
           ],
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildCurrentExhibitionsCard() {
-    return Card(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -117,9 +126,9 @@ class MuseumDetailView extends PlaceDetailViewInterface {
               children: [
                 const Icon(Icons.palette, color: Colors.purple),
                 const SizedBox(width: 8),
-                const Text(
-                  'Aktuelle Ausstellungen',
-                  style: TextStyle(
+                Text(
+                  l10n.currentExhibitions,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -144,9 +153,9 @@ class MuseumDetailView extends PlaceDetailViewInterface {
             ),
             const SizedBox(height: 12),
             if (museum.currentExhibitions.isEmpty)
-              const Text(
-                'Keine aktuellen Sonderausstellungen',
-                style: TextStyle(
+              Text(
+                l10n.noCurrentExhibitions,
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.grey,
                   fontStyle: FontStyle.italic,
@@ -154,20 +163,25 @@ class MuseumDetailView extends PlaceDetailViewInterface {
               )
             else
               ...museum.currentExhibitions.take(3).map((exhibition) => 
-                _buildExhibitionTile(exhibition, isTemporary: true)),
+                _buildExhibitionTile(exhibition, isTemporary: true, context: context)),
             if (museum.currentExhibitions.length > 3)
               TextButton(
                 onPressed: () {}, // TODO: Show all exhibitions
-                child: Text('Alle ${museum.currentExhibitions.length} Ausstellungen anzeigen'),
+                child: Text('${l10n.showAllExhibitions} (${museum.currentExhibitions.length})'),
               ),
           ],
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildFeaturesCard() {
-    return Card(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -177,9 +191,9 @@ class MuseumDetailView extends PlaceDetailViewInterface {
               children: [
                 const Icon(Icons.info_outline, color: Colors.purple),
                 const SizedBox(width: 8),
-                const Text(
-                  'Ausstattung & Service',
-                  style: TextStyle(
+                Text(
+                  l10n.equipment,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -192,21 +206,21 @@ class MuseumDetailView extends PlaceDetailViewInterface {
                 Expanded(
                   child: _buildFeatureItem(
                     Icons.headphones,
-                    'Audio-Guide',
+                    l10n.audioGuide,
                     museum.hasAudioGuide,
                   ),
                 ),
                 Expanded(
                   child: _buildFeatureItem(
                     Icons.shopping_bag,
-                    'Museumsshop',
+                    l10n.giftShop,
                     museum.hasGiftShop,
                   ),
                 ),
                 Expanded(
                   child: _buildFeatureItem(
                     Icons.accessible,
-                    'Barrierefrei',
+                    l10n.wheelchairAccessible,
                     museum.isWheelchairAccessible,
                   ),
                 ),
@@ -216,46 +230,55 @@ class MuseumDetailView extends PlaceDetailViewInterface {
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildExhibitionsTab() {
-    return SingleChildScrollView(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (museum.currentExhibitions.isNotEmpty) ...[
             _buildExhibitionsSection(
-              'Aktuelle Sonderausstellungen',
+              l10n.currentExhibitions,
               museum.currentExhibitions,
               isTemporary: true,
+              context: context,
             ),
             const SizedBox(height: 24),
           ],
           if (museum.permanentCollections.isNotEmpty) ...[
             _buildExhibitionsSection(
-              'Dauerausstellungen',
+              l10n.permanentCollections,
               museum.permanentCollections,
               isTemporary: false,
+              context: context,
             ),
           ],
           if (museum.currentExhibitions.isEmpty && museum.permanentCollections.isEmpty)
-            const Center(
+            Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.palette, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('Keine Ausstellungsinformationen verf�gbar'),
+                  const Icon(Icons.palette, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(l10n.noExhibitionInfoAvailable),
                 ],
               ),
             ),
         ],
       ),
     );
+      },
+    );
   }
 
-  Widget _buildExhibitionsSection(String title, List<String> exhibitions, {required bool isTemporary}) {
+  Widget _buildExhibitionsSection(String title, List<String> exhibitions, {required bool isTemporary, required BuildContext context}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -293,12 +316,12 @@ class MuseumDetailView extends PlaceDetailViewInterface {
         ),
         const SizedBox(height: 12),
         ...exhibitions.map((exhibition) => 
-          _buildDetailedExhibitionTile(exhibition, isTemporary: isTemporary)),
+          _buildDetailedExhibitionTile(exhibition, isTemporary: isTemporary, context: context)),
       ],
     );
   }
 
-  Widget _buildExhibitionTile(String exhibition, {required bool isTemporary}) {
+  Widget _buildExhibitionTile(String exhibition, {required bool isTemporary, required BuildContext context}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -324,7 +347,7 @@ class MuseumDetailView extends PlaceDetailViewInterface {
                   ),
                 ),
                 Text(
-                  isTemporary ? 'Sonderausstellung' : 'Dauerausstellung',
+                  isTemporary ? AppLocalizations.of(context)!.temporaryExhibition : AppLocalizations.of(context)!.permanentExhibition,
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade600,
@@ -338,7 +361,7 @@ class MuseumDetailView extends PlaceDetailViewInterface {
     );
   }
 
-  Widget _buildDetailedExhibitionTile(String exhibition, {required bool isTemporary}) {
+  Widget _buildDetailedExhibitionTile(String exhibition, {required bool isTemporary, required BuildContext context}) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -377,7 +400,7 @@ class MuseumDetailView extends PlaceDetailViewInterface {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      isTemporary ? 'Sonderausstellung' : 'Dauerausstellung',
+                      isTemporary ? AppLocalizations.of(context)!.temporaryExhibition : AppLocalizations.of(context)!.permanentExhibition,
                       style: TextStyle(
                         fontSize: 12,
                         color: (isTemporary ? Colors.orange : Colors.purple).shade700,
@@ -459,14 +482,15 @@ class MuseumDetailView extends PlaceDetailViewInterface {
   }
 
   // Helper Methods
-  String _getCategoryDisplayName(String category) {
+  String _getCategoryDisplayName(String category, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     switch (category.toLowerCase()) {
-      case 'art': return 'Kunst';
-      case 'history': return 'Geschichte';
-      case 'science': return 'Wissenschaft';
-      case 'technology': return 'Technik';
-      case 'nature': return 'Naturkunde';
-      case 'archaeology': return 'Arch�ologie';
+      case 'art': return l10n.art;
+      case 'history': return l10n.history;
+      case 'science': return l10n.science;
+      case 'technology': return l10n.technology;
+      case 'nature': return l10n.nature;
+      case 'archaeology': return l10n.archaeology;
       default: return category;
     }
   }

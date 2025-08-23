@@ -1,6 +1,10 @@
 // lib/screens/add_visit_implementations/add_museum_visit_dialog.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../models/museum.dart';
 import '../../models/visit.dart';
 import '../../models/visit_activity.dart';
@@ -24,6 +28,11 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
   late TimeOfDay selectedTime;
   final TextEditingController notesController = TextEditingController();
   double overallRating = 0.0;
+
+  // Photo and privacy data
+  List<String> photoUrls = [];
+  final ImagePicker _picker = ImagePicker();
+  bool isPublic = true;
 
   // Museum-specific data
   List<String> visitedExhibitions = [];
@@ -80,6 +89,8 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
             _buildBasicVisitSection(),
             _buildExhibitionsSection(),
             _buildMuseumSpecificSection(),
+            _buildPhotoSection(),
+            _buildPrivacySection(),
           ],
         ),
       ),
@@ -269,6 +280,152 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
     );
   }
 
+  Widget _buildPhotoSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.photo_camera, color: Colors.purple),
+                const SizedBox(width: 8),
+                Text(l10n.photos, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Photo grid
+            if (photoUrls.isNotEmpty) ...[
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: photoUrls.length,
+                  itemBuilder: (context, index) {
+                    return _buildPhotoTile(photoUrls[index], index);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            
+            // Add photo button
+            OutlinedButton.icon(
+              onPressed: _showPhotoOptions,
+              icon: const Icon(Icons.add_photo_alternate),
+              label: Text(l10n.addPhoto),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.purple,
+                side: const BorderSide(color: Colors.purple),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacySection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.privacy_tip, color: Colors.purple),
+                const SizedBox(width: 8),
+                Text(l10n.privacy, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            Text(
+              l10n.privacyDescription,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            
+            // Privacy options
+            RadioListTile<bool>(
+              title: Text(l10n.publicData),
+              subtitle: Text(l10n.publicDataDescription),
+              value: true,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.purple,
+            ),
+            RadioListTile<bool>(
+              title: Text(l10n.privateData),
+              subtitle: Text(l10n.privateDataDescription),
+              value: false,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.purple,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoTile(String photoPath, int index) {
+    return Container(
+      width: 100,
+      height: 100,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(photoPath),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.error, color: Colors.red),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => _removePhoto(index),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Event handlers
   void _selectDate() async {
     final date = await showDatePicker(
@@ -357,6 +514,106 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
     );
   }
 
+  void _showPhotoOptions() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(l10n.takePhoto),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(l10n.chooseFromGallery),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        final String savedPath = await _saveImageToLocal(image.path);
+        setState(() {
+          photoUrls.add(savedPath);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.photoAdded),
+              backgroundColor: Colors.purple,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorLoadingPhoto),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<String> _saveImageToLocal(String imagePath) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String fileName = 'visit_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String localPath = path.join(appDir.path, 'visit_photos', fileName);
+    
+    // Create directory if it doesn't exist
+    final Directory dir = Directory(path.dirname(localPath));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    // Copy file to local storage
+    final File sourceFile = File(imagePath);
+    final File targetFile = await sourceFile.copy(localPath);
+    
+    return targetFile.path;
+  }
+
+  void _removePhoto(int index) {
+    setState(() {
+      photoUrls.removeAt(index);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.photoRemoved),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
   void _saveVisit() {
     final l10n = AppLocalizations.of(context)!;
     
@@ -399,6 +656,8 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
       notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
       duration: visitDuration,
       activities: exhibitionActivities,
+      photoUrls: photoUrls,
+      isPublic: isPublic,
       metadata: {
         'museum_name': widget.museum.name,
         'had_audio_guide': hadAudioGuide,

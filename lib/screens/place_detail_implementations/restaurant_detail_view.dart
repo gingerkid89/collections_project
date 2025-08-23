@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/restaurant.dart';
 import '../../models/menu_item.dart';
 import '../../models/place_statistic.dart';
+import '../../l10n/app_localizations.dart';
 import '../place_detail_view_interface.dart';
 import '../add_visit_implementations/add_restaurant_visit_dialog.dart';
 
@@ -16,30 +17,31 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
   }) : super(place: restaurant);
 
   @override
-  String get specialTabLabel => 'Menü';
+  String get specialTabLabel => 'Menü'; // Will be overridden in the interface to use localized string
 
   @override
   String get specialTabIcon => 'restaurant_menu';
 
   @override
-  List<PlaceStatistic> getSpecificStats() {
+  List<PlaceStatistic> getSpecificStats(BuildContext? context) {
     final avgCost = _calculateAverageCost();
     final dishCount = restaurant.menu.length;
     final avgRating = _calculateAverageMenuRating();
+    final l10n = context != null ? AppLocalizations.of(context)! : null;
 
     return [
       PlaceStatistic.number(
-        label: 'Gerichte',
+        label: l10n?.dishes ?? 'Gerichte',
         value: dishCount,
       ),
       if (avgCost > 0)
         PlaceStatistic.currency(
-          label: 'Ø Preis',
+          label: l10n?.averagePrice ?? 'Ø Preis',
           value: avgCost,
         ),
       if (avgRating > 0)
         PlaceStatistic.number(
-          label: 'Ø Bewertung',
+          label: l10n?.averageRating ?? 'Ø Bewertung',
           value: avgRating,
           unit: '★',
         ),
@@ -72,51 +74,59 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
   }
 
   Widget _buildRestaurantInfoCard() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.restaurant, color: Colors.green),
-                const SizedBox(width: 8),
-                const Text(
-                  'Restaurant Info',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.restaurant, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.restaurantInfo,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('Küche', restaurant.cuisine),
-            _buildInfoRow('Preiskategorie', restaurant.priceCategory),
+                const SizedBox(height: 12),
+                _buildInfoRow(l10n.cuisine, restaurant.cuisine),
+                _buildInfoRow(l10n.priceCategory, restaurant.priceCategory),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 4,
               children: [
                 if (restaurant.hasReservation)
-                  _buildFeatureChip('Reservierungen möglich'),
+                  _buildFeatureChip(l10n.reservationsAvailable),
                 if (restaurant.hasDelivery)
-                  _buildFeatureChip('Lieferservice'),
+                  _buildFeatureChip(l10n.deliveryService),
                 if (restaurant.hasTakeout)
-                  _buildFeatureChip('Abholung'),
+                  _buildFeatureChip(l10n.takeout),
               ],
             ),
           ],
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildQuickMenuPreview() {
     final topDishes = restaurant.menu.take(3).toList();
 
-    return Card(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -129,9 +139,9 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
                   children: [
                     const Icon(Icons.menu_book, color: Colors.green),
                     const SizedBox(width: 8),
-                    const Text(
-                      'Beliebte Gerichte',
-                      style: TextStyle(
+                    Text(
+                      l10n.popularDishes,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -139,7 +149,7 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
                   ],
                 ),
                 Text(
-                  '${restaurant.menu.length} Gerichte',
+                  '${restaurant.menu.length} ${l10n.dishes}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -153,10 +163,15 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildCuisineAndPriceCard() {
-    return Card(
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -170,9 +185,9 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
                     restaurant.cuisine,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
-                  const Text(
-                    'Küche',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    l10n.cuisine,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -193,9 +208,9 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
                       color: Colors.green,
                     ),
                   ),
-                  const Text(
-                    'Preisklasse',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    l10n.priceRange,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -204,22 +219,27 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
         ),
       ),
     );
+      },
+    );
   }
 
   Widget _buildMenuTab() {
     final categorizedMenu = _categorizeMenu();
 
-    return categorizedMenu.isEmpty
-        ? const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.restaurant_menu, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('Keine Menü-Informationen verfügbar'),
-              ],
-            ),
-          )
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return categorizedMenu.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.restaurant_menu, size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    Text(l10n.noMenuInfoAvailable),
+                  ],
+                ),
+              )
         : ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: categorizedMenu.length,
@@ -229,6 +249,8 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
               return _buildMenuCategory(category, dishes);
             },
           );
+      },
+    );
   }
 
   Widget _buildMenuCategory(String category, List<MenuItem> dishes) {

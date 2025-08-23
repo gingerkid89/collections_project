@@ -120,12 +120,20 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   }
 
   Restaurant _createRestaurantFromLocation(Location location) {
-    // Determine if this is McDonald's or Starbucks based on location name/collection
-    final isStarbucks = location.name.toLowerCase().contains('starbucks') || 
-                       widget.collection.name.toLowerCase().contains('starbucks');
+    // Determine restaurant type based on location name and collection
+    final locationName = location.name.toLowerCase();
+    final collectionName = widget.collection.name.toLowerCase();
     
-    if (isStarbucks) {
+    if (locationName.contains('starbucks') || collectionName.contains('starbucks')) {
       return _createStarbucksFromLocation(location);
+    } else if (collectionName.contains('italian') || 
+               locationName.contains('italian') ||
+               locationName.contains('dolce vita') ||
+               locationName.contains('osteria') ||
+               locationName.contains('trattoria') ||
+               locationName.contains('ristorante') ||
+               locationName.contains('pizzeria')) {
+      return _createItalianRestaurantFromLocation(location);
     } else {
       return _createMcDonaldsFromLocation(location);
     }
@@ -454,18 +462,226 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     );
   }
 
+  Restaurant _createItalianRestaurantFromLocation(Location location) {
+    final existingVisits = _getExistingVisits(location.id);
+    final italianMenu = [
+      // Antipasti
+      MenuItem(
+        id: 'it_bruschetta',
+        name: 'Bruschetta Classica',
+        description: 'Geröstetes Brot mit frischen Tomaten, Basilikum und Knoblauch',
+        price: 7.50,
+        category: 'Antipasti',
+      ),
+      MenuItem(
+        id: 'it_antipasto_misto',
+        name: 'Antipasto Misto',
+        description: 'Gemischte italienische Vorspeisen mit Oliven, Käse und Salami',
+        price: 12.90,
+        category: 'Antipasti',
+      ),
+      MenuItem(
+        id: 'it_carpaccio',
+        name: 'Carpaccio di Manzo',
+        description: 'Hauchdünnes Rindfleisch mit Rucola, Parmesan und Zitrone',
+        price: 14.50,
+        category: 'Antipasti',
+      ),
+
+      // Pizza
+      MenuItem(
+        id: 'it_margherita',
+        name: 'Pizza Margherita',
+        description: 'Tomatensoße, Mozzarella und frisches Basilikum',
+        price: 9.50,
+        category: 'Pizza',
+      ),
+      MenuItem(
+        id: 'it_quattro_stagioni',
+        name: 'Pizza Quattro Stagioni',
+        description: 'Tomatensoße, Mozzarella, Schinken, Champignons, Artischocken und Oliven',
+        price: 13.90,
+        category: 'Pizza',
+      ),
+      MenuItem(
+        id: 'it_diavola',
+        name: 'Pizza Diavola',
+        description: 'Tomatensoße, Mozzarella und scharfe Salami',
+        price: 12.50,
+        category: 'Pizza',
+      ),
+      MenuItem(
+        id: 'it_prosciutto',
+        name: 'Pizza Prosciutto e Funghi',
+        description: 'Tomatensoße, Mozzarella, Schinken und Champignons',
+        price: 12.90,
+        category: 'Pizza',
+      ),
+
+      // Pasta
+      MenuItem(
+        id: 'it_carbonara',
+        name: 'Spaghetti Carbonara',
+        description: 'Spaghetti mit Ei, Speck, Parmesan und schwarzem Pfeffer',
+        price: 11.90,
+        category: 'Pasta',
+      ),
+      MenuItem(
+        id: 'it_amatriciana',
+        name: 'Spaghetti all\'Amatriciana',
+        description: 'Spaghetti mit Tomatensoße, Speck und Pecorino',
+        price: 12.50,
+        category: 'Pasta',
+      ),
+      MenuItem(
+        id: 'it_aglio_olio',
+        name: 'Spaghetti Aglio e Olio',
+        description: 'Spaghetti mit Olivenöl, Knoblauch und Chili',
+        price: 9.90,
+        category: 'Pasta',
+      ),
+      MenuItem(
+        id: 'it_penne_arrabbiata',
+        name: 'Penne all\'Arrabbiata',
+        description: 'Penne mit scharfer Tomatensoße und Basilikum',
+        price: 10.90,
+        category: 'Pasta',
+      ),
+      MenuItem(
+        id: 'it_lasagne',
+        name: 'Lasagne della Casa',
+        description: 'Hausgemachte Lasagne mit Hackfleischsoße und Béchamel',
+        price: 13.90,
+        category: 'Pasta',
+      ),
+
+      // Dolci
+      MenuItem(
+        id: 'it_tiramisu',
+        name: 'Tiramisù',
+        description: 'Klassisches Tiramisù mit Mascarpone und Espresso',
+        price: 6.50,
+        category: 'Dolci',
+      ),
+      MenuItem(
+        id: 'it_panna_cotta',
+        name: 'Panna Cotta',
+        description: 'Italienische Sahnespeise mit Beerensauce',
+        price: 5.90,
+        category: 'Dolci',
+      ),
+      MenuItem(
+        id: 'it_gelato',
+        name: 'Gelato Misto',
+        description: 'Drei Kugeln italienisches Eis nach Wahl',
+        price: 4.50,
+        category: 'Dolci',
+      ),
+
+      // Vino
+      MenuItem(
+        id: 'it_chianti',
+        name: 'Chianti Classico',
+        description: 'Italienischer Rotwein aus der Toskana (0,25l)',
+        price: 6.90,
+        category: 'Vino',
+      ),
+      MenuItem(
+        id: 'it_prosecco',
+        name: 'Prosecco',
+        description: 'Italienischer Schaumwein (0,1l)',
+        price: 4.50,
+        category: 'Vino',
+      ),
+      MenuItem(
+        id: 'it_limoncello',
+        name: 'Limoncello',
+        description: 'Italienischer Zitronenlikör (4cl)',
+        price: 3.90,
+        category: 'Vino',
+      ),
+    ];
+
+    return Restaurant(
+      id: location.id,
+      name: location.name,
+      cuisine: 'Italienisch',
+      priceCategory: '€€',
+      menu: italianMenu,
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits,
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'daily': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasReservation: true,  // Italian restaurants typically take reservations
+      hasDelivery: true,
+      hasTakeout: true,
+    );
+  }
+
+
   Museum _createMuseumFromLocation(Location location) {
     // Get existing visits for this location
     final existingVisits = _getExistingVisits(location.id);
+    
+    // Determine museum type based on collection and location name
+    final collectionName = widget.collection.name.toLowerCase();
+    final locationName = location.name.toLowerCase();
+    
+    if (collectionName.contains('kunst') || collectionName.contains('art') ||
+        locationName.contains('art') || locationName.contains('kunst')) {
+      return _createArtMuseum(location, existingVisits);
+    } else if (collectionName.contains('wissenschaft') || collectionName.contains('science') ||
+               locationName.contains('science') || locationName.contains('odysseum') ||
+               locationName.contains('sport') || locationName.contains('chocolate')) {
+      return _createScienceMuseum(location, existingVisits);
+    } else {
+      return _createGeneralMuseum(location, existingVisits);
+    }
+  }
+
+  Museum _createGeneralMuseum(Location location, List<Visit> existingVisits) {
+    // Default museum with mixed collections
+    List<String> exhibitions = [];
+    List<String> collections = [];
+    String ticketPrice = '€12 / €6 ermäßigt';
+    String category = 'mixed';
+    
+    if (location.name.contains('Ludwig')) {
+      exhibitions = ['Pop Art', 'Picasso Retrospektive'];
+      collections = ['Moderne Kunst', 'Expressionismus', 'Pop Art'];
+      ticketPrice = '€13 / €8.50 ermäßigt';
+      category = 'art';
+    } else if (location.name.contains('Wallraf')) {
+      exhibitions = ['Barock Meister', 'Mittelalterliche Kunst'];
+      collections = ['Alte Meister', 'Mittelalterliche Kunst'];
+      ticketPrice = '€10 / €6 ermäßigt';
+      category = 'art';
+    } else if (location.name.contains('Romano')) {
+      exhibitions = ['Römische Funde 2024', 'Gladiatoren'];
+      collections = ['Römische Mosaike', 'Antike Skulpturen'];
+      ticketPrice = '€6 / €3 ermäßigt';
+      category = 'history';
+    } else {
+      exhibitions = ['Wechselausstellung 2024'];
+      collections = ['Dauerausstellung'];
+    }
+    
     return Museum(
       id: location.id,
       name: location.name,
-      category: 'art', // Default - in real app from data
-      currentExhibitions: ['Moderne Kunst 2024', 'Impressionisten'],
-      permanentCollections: ['Klassische Sammlung', 'Zeitgenössische Kunst'],
-      ticketPrice: '€15 / €8 ermäßigt',
+      category: category,
+      currentExhibitions: exhibitions,
+      permanentCollections: collections,
+      ticketPrice: ticketPrice,
       collectionStatus: _createCollectionStatus(location, existingVisits),
-      visits: existingVisits, // Load actual visits from provider
+      visits: existingVisits,
       info: PlaceInfo(
         address: location.address,
         phone: location.phone,
@@ -481,14 +697,112 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
     );
   }
 
+  Museum _createArtMuseum(Location location, List<Visit> existingVisits) {
+    List<String> exhibitions = [];
+    List<String> collections = [];
+    String ticketPrice = '€15 / €8 ermäßigt';
+    
+    if (location.name.contains('Angewandte Kunst')) {
+      exhibitions = ['Design Now', 'Zeitgenössisches Handwerk'];
+      collections = ['Design Sammlung', 'Keramik', 'Textilien'];
+      ticketPrice = '€8 / €5 ermäßigt';
+    } else if (location.name.contains('Kunstverein')) {
+      exhibitions = ['Emerging Artists', 'Neue Medien'];
+      collections = ['Zeitgenössische Sammlung'];
+      ticketPrice = '€6 / €3 ermäßigt';
+    } else if (location.name.contains('Käthe Kollwitz')) {
+      exhibitions = ['Kollwitz und Zeitgenossen'];
+      collections = ['Käthe Kollwitz Werke', 'Deutsche Expressionisten'];
+      ticketPrice = '€7 / €4 ermäßigt';
+    } else {
+      exhibitions = ['Moderne Kunst 2024', 'Abstrakte Kunst'];
+      collections = ['Zeitgenössische Sammlung', 'Moderne Klassiker'];
+    }
+    
+    return Museum(
+      id: location.id,
+      name: location.name,
+      category: 'art',
+      currentExhibitions: exhibitions,
+      permanentCollections: collections,
+      ticketPrice: ticketPrice,
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits,
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'tuesday-sunday': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasAudioGuide: true,
+      hasGiftShop: location.name.contains('Kollwitz') ? false : true,
+      isWheelchairAccessible: true,
+    );
+  }
+
+  Museum _createScienceMuseum(Location location, List<Visit> existingVisits) {
+    List<String> exhibitions = [];
+    List<String> collections = [];
+    String ticketPrice = '€16 / €10 ermäßigt';
+    
+    if (location.name.contains('Odysseum')) {
+      exhibitions = ['Weltraum Expedition', 'Zukunft der Energie'];
+      collections = ['Interaktive Physik', 'Planetarium', 'Life Science'];
+      ticketPrice = '€18.50 / €13.50 ermäßigt';
+    } else if (location.name.contains('Sport')) {
+      exhibitions = ['Olympische Spiele 2024', 'Fußball WM Historie'];
+      collections = ['Sportgeschichte', 'Olympische Sammlung', 'Deutsche Sportler'];
+      ticketPrice = '€14 / €9 ermäßigt';
+    } else if (location.name.contains('Chocolate') || location.name.contains('Schokolade')) {
+      exhibitions = ['Kakao Weltweit', 'Süße Innovationen'];
+      collections = ['Schokoladen Geschichte', 'Produktionsprozess', 'Kakao Anbau'];
+      ticketPrice = '€13.50 / €9 ermäßigt';
+    } else {
+      exhibitions = ['Wissenschaft Interaktiv', 'Technik der Zukunft'];
+      collections = ['Naturwissenschaften', 'Technik Museum'];
+    }
+    
+    return Museum(
+      id: location.id,
+      name: location.name,
+      category: 'science',
+      currentExhibitions: exhibitions,
+      permanentCollections: collections,
+      ticketPrice: ticketPrice,
+      collectionStatus: _createCollectionStatus(location, existingVisits),
+      visits: existingVisits,
+      info: PlaceInfo(
+        address: location.address,
+        phone: location.phone,
+        website: location.website,
+        openingHours: location.openingHours != null 
+            ? {'daily': location.openingHours!} 
+            : {},
+        highlights: location.features,
+      ),
+      hasAudioGuide: location.name.contains('Chocolate') ? false : true,
+      hasGiftShop: true, // Science museums typically have good gift shops
+      isWheelchairAccessible: true, // Modern science museums are usually accessible
+    );
+  }
+
   Color get brandColor {
     switch (widget.collection.iconEmoji) {
-      case '🍟':
+      case '🍟': // McDonald's
         return const Color(0xFFEF4444);
-      case '☕':
+      case '☕': // Starbucks
         return const Color(0xFF10B981);
-      case '🏛️':
+      case '🏛️': // Museums
         return const Color(0xFF8B5CF6);
+      case '🎨': // Art Museums
+        return const Color(0xFFF59E0B);
+      case '🔬': // Science Museums
+        return const Color(0xFF3B82F6);
+      case '🍝': // Italian Restaurants
+        return const Color(0xFF059669);
       default:
         return const Color(0xFF3B82F6);
     }

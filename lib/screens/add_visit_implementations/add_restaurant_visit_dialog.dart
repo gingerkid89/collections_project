@@ -1,6 +1,10 @@
 // lib/screens/add_visit_implementations/add_restaurant_visit_dialog.dart
 
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../../models/restaurant.dart';
 import '../../models/menu_item.dart';
 import '../../models/visit.dart';
@@ -25,6 +29,11 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
   late TimeOfDay selectedTime;
   final TextEditingController notesController = TextEditingController();
   double overallRating = 0.0;
+
+  // Photo and privacy data
+  List<String> photoUrls = [];
+  final ImagePicker _picker = ImagePicker();
+  bool isPublic = true;
 
   // Restaurant-specific data
   List<MenuItem> selectedDishes = [];
@@ -85,6 +94,8 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
             _buildBasicVisitSection(),
             _buildMenuSelectionSection(),
             _buildCostSection(),
+            _buildPhotoSection(),
+            _buildPrivacySection(),
           ],
         ),
       ),
@@ -92,6 +103,8 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
   }
 
   Widget _buildBasicVisitSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -99,9 +112,9 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Besuchsinformationen',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.visitInformation,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             
@@ -111,7 +124,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                 Expanded(
                   child: ListTile(
                     leading: const Icon(Icons.calendar_today),
-                    title: const Text('Datum'),
+                    title: Text(l10n.date),
                     subtitle: Text('${selectedDate.day}.${selectedDate.month}.${selectedDate.year}'),
                     onTap: _selectDate,
                   ),
@@ -119,7 +132,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                 Expanded(
                   child: ListTile(
                     leading: const Icon(Icons.access_time),
-                    title: const Text('Uhrzeit'),
+                    title: Text(l10n.time),
                     subtitle: Text('${selectedTime.hour}:${selectedTime.minute.toString().padLeft(2, '0')}'),
                     onTap: _selectTime,
                   ),
@@ -129,7 +142,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
             
             // Rating
             const SizedBox(height: 16),
-            const Text('Gesamtbewertung *', style: TextStyle(fontWeight: FontWeight.w500)),
+            Text('${l10n.overallRating} *', style: const TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
               children: List.generate(5, (index) {
@@ -148,10 +161,10 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                hintText: 'Wie war dein Besuch?',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.notes,
+                hintText: l10n.restaurantVisitNotes,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -162,6 +175,8 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
   }
 
   Widget _buildMenuSelectionSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -169,25 +184,25 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.restaurant_menu, color: Colors.green),
-                SizedBox(width: 8),
-                Text('Gegessene Gerichte', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Icon(Icons.restaurant_menu, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(l10n.dishesOrdered, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
             
             // Selected dishes
             if (selectedDishes.isNotEmpty) ...[
-              const Text('Ausgewählte Gerichte:', style: TextStyle(fontWeight: FontWeight.w500)),
+              Text(l10n.selectedDishes, style: const TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               ...selectedDishes.map((dish) => _buildSelectedDishTile(dish)),
               const SizedBox(height: 16),
             ],
             
             // Available dishes
-            const Text('Verfügbare Gerichte:', style: TextStyle(fontWeight: FontWeight.w500)),
+            Text(l10n.availableDishes, style: const TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             SizedBox(
               height: 200,
@@ -214,6 +229,8 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
   }
 
   Widget _buildCostSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
@@ -221,11 +238,11 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.euro, color: Colors.green),
-                SizedBox(width: 8),
-                Text('Kosten', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Icon(Icons.euro, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(l10n.costs, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ],
             ),
             const SizedBox(height: 16),
@@ -242,7 +259,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Gerichte:'),
+                      Text(l10n.dishesWithColon),
                       Text('€${(totalCost - tipAmount - otherCosts).toStringAsFixed(2)}'),
                     ],
                   ),
@@ -251,7 +268,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Trinkgeld:'),
+                        Text(l10n.tip),
                         Text('€${tipAmount.toStringAsFixed(2)}'),
                       ],
                     ),
@@ -261,7 +278,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Sonstiges:'),
+                        Text(l10n.other),
                         Text('€${otherCosts.toStringAsFixed(2)}'),
                       ],
                     ),
@@ -270,7 +287,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Gesamt:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      Text(l10n.total, style: const TextStyle(fontWeight: FontWeight.bold)),
                       Text(
                         '€${totalCost.toStringAsFixed(2)}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
@@ -279,6 +296,104 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoSection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.photo_camera, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(l10n.photos, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Photo grid
+            if (photoUrls.isNotEmpty) ...[
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: photoUrls.length,
+                  itemBuilder: (context, index) {
+                    return _buildPhotoTile(photoUrls[index], index);
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            
+            // Add photo button
+            OutlinedButton.icon(
+              onPressed: _showPhotoOptions,
+              icon: const Icon(Icons.add_photo_alternate),
+              label: Text(l10n.addPhoto),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.green,
+                side: const BorderSide(color: Colors.green),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacySection() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    return Card(
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.privacy_tip, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(l10n.privacy, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            Text(
+              l10n.privacyDescription,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            
+            // Privacy options
+            RadioListTile<bool>(
+              title: Text(l10n.publicData),
+              subtitle: Text(l10n.publicDataDescription),
+              value: true,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.green,
+            ),
+            RadioListTile<bool>(
+              title: Text(l10n.privateData),
+              subtitle: Text(l10n.privateDataDescription),
+              value: false,
+              groupValue: isPublic,
+              onChanged: (value) => setState(() => isPublic = value!),
+              activeColor: Colors.green,
             ),
           ],
         ),
@@ -310,6 +425,54 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
             icon: const Icon(Icons.close, color: Colors.red),
             constraints: const BoxConstraints(),
             padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoTile(String photoPath, int index) {
+    return Container(
+      width: 100,
+      height: 100,
+      margin: const EdgeInsets.only(right: 8),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.file(
+              File(photoPath),
+              width: 100,
+              height: 100,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.error, color: Colors.red),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => _removePhoto(index),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -351,21 +514,123 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
     });
   }
 
+  void _showPhotoOptions() {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: Text(l10n.takePhoto),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: Text(l10n.chooseFromGallery),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        final String savedPath = await _saveImageToLocal(image.path);
+        setState(() {
+          photoUrls.add(savedPath);
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.photoAdded),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.errorLoadingPhoto),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<String> _saveImageToLocal(String imagePath) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String fileName = 'visit_photo_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final String localPath = path.join(appDir.path, 'visit_photos', fileName);
+    
+    // Create directory if it doesn't exist
+    final Directory dir = Directory(path.dirname(localPath));
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    
+    // Copy file to local storage
+    final File sourceFile = File(imagePath);
+    final File targetFile = await sourceFile.copy(localPath);
+    
+    return targetFile.path;
+  }
+
+  void _removePhoto(int index) {
+    setState(() {
+      photoUrls.removeAt(index);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.photoRemoved),
+        backgroundColor: Colors.orange,
+      ),
+    );
+  }
+
   void _saveVisit() {
+    final l10n = AppLocalizations.of(context)!;
+    
     try {
       final visit = _createVisit();
       Navigator.of(context).pop(visit);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.visitSavedSuccessfully),
+          content: Text(l10n.visitSavedSuccessfully),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.errorSaving(e.toString())),
+          content: Text(l10n.errorSaving(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -391,6 +656,8 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
       notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
       totalCost: totalCost > 0 ? totalCost : null,
       activities: dishActivities,
+      photoUrls: photoUrls,
+      isPublic: isPublic,
       metadata: {
         'restaurant_name': widget.restaurant.name,
         'tip_amount': tipAmount,
