@@ -217,9 +217,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Eine schöne App zum Sammeln und Verfolgen besonderer Orte, die du besuchst.';
 
   @override
-  String visitDetails(Object placeName) {
-    return 'Besuch: $placeName';
-  }
+  String get visitDetails => 'Besuch Details';
 
   @override
   String get save => 'Speichern';
@@ -246,7 +244,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get required => 'erforderlich';
 
   @override
-  String get notes => 'Notizen (optional)';
+  String get notes => 'Notizen';
 
   @override
   String get visitNotes => 'Wie war dein Besuch?';
@@ -529,4 +527,41 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get privateDataDescription => 'Nur du kannst deine Daten sehen';
+
+  @override
+  String get editVisit => 'Besuch bearbeiten';
+
+  @override
+  String get deleteVisit => 'Besuch löschen';
+
+  @override
+  String get shareVisit => 'Besuch teilen';
+
+  @override
+  String get viewDetails => 'Details anzeigen';
+
+  @override
+  String get activities => 'Aktivitäten';
+
+  @override
+  String get cost => 'Kosten';
+
+  @override
+  String get location => 'Ort';
+
+  @override
+  String get noPhotos => 'Keine Fotos';
+
+  @override
+  String get photoGallery => 'Fotogalerie';
+
+  @override
+  String get confirmDelete => 'Besuch löschen';
+
+  @override
+  String get confirmDeleteMessage =>
+      'Sind Sie sicher, dass Sie diesen Besuch löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get delete => 'Löschen';
 }

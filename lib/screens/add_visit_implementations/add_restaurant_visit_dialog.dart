@@ -75,7 +75,7 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.visitDetails(widget.restaurant.name)),
+        title: Text('${l10n.visitDetails} - ${widget.restaurant.name}'),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [

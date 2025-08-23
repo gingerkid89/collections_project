@@ -491,8 +491,8 @@ abstract class AppLocalizations {
   /// No description provided for @visitDetails.
   ///
   /// In en, this message translates to:
-  /// **'Visit: {placeName}'**
-  String visitDetails(Object placeName);
+  /// **'Visit Details'**
+  String get visitDetails;
 
   /// No description provided for @save.
   ///
@@ -545,7 +545,7 @@ abstract class AppLocalizations {
   /// No description provided for @notes.
   ///
   /// In en, this message translates to:
-  /// **'Notes (optional)'**
+  /// **'Notes'**
   String get notes;
 
   /// No description provided for @visitNotes.
@@ -1087,6 +1087,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Only you can see your data'**
   String get privateDataDescription;
+
+  /// No description provided for @editVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Visit'**
+  String get editVisit;
+
+  /// No description provided for @deleteVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Visit'**
+  String get deleteVisit;
+
+  /// No description provided for @shareVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Visit'**
+  String get shareVisit;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetails;
+
+  /// No description provided for @activities.
+  ///
+  /// In en, this message translates to:
+  /// **'Activities'**
+  String get activities;
+
+  /// No description provided for @cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get cost;
+
+  /// No description provided for @location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get location;
+
+  /// No description provided for @noPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos'**
+  String get noPhotos;
+
+  /// No description provided for @photoGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo Gallery'**
+  String get photoGallery;
+
+  /// No description provided for @confirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Visit'**
+  String get confirmDelete;
+
+  /// No description provided for @confirmDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this visit? This action cannot be undone.'**
+  String get confirmDeleteMessage;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,7 @@ import '../models/restaurant.dart';
 import '../models/museum.dart';
 import '../providers/visits_provider.dart';
 import '../l10n/app_localizations.dart';
+import 'visit_detail_screen.dart';
 // Dynamic imports to avoid circular dependency issues
 // import 'place_detail_implementations/restaurant_detail_view.dart';
 // import 'place_detail_implementations/museum_detail_view.dart';
@@ -109,6 +110,7 @@ class GenericPlaceDetailView extends StatefulWidget {
 class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   int _currentTabIndex = 0;
   bool _showPrivateVisits = true; // Default to private visits
+  bool _hasUserManuallySelectedTab = false; // Track if user has manually selected
 
   @override
   Widget build(BuildContext context) {
@@ -372,7 +374,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
         final publicVisits = allVisits.where((visit) => visit.isPublic).toList();
         
         // Auto-switch to public if no private visits and user hasn't manually selected
-        if (privateVisits.isEmpty && publicVisits.isNotEmpty && _showPrivateVisits) {
+        if (privateVisits.isEmpty && publicVisits.isNotEmpty && _showPrivateVisits && !_hasUserManuallySelectedTab) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
@@ -395,7 +397,10 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                     child: _buildToggleButton(
                       label: l10n.privateVisits,
                       isActive: _showPrivateVisits,
-                      onTap: () => setState(() => _showPrivateVisits = true),
+                      onTap: () => setState(() {
+                        _showPrivateVisits = true;
+                        _hasUserManuallySelectedTab = true;
+                      }),
                       count: privateVisits.length,
                     ),
                   ),
@@ -404,7 +409,10 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                     child: _buildToggleButton(
                       label: l10n.publicVisitsPlace,
                       isActive: !_showPrivateVisits,
-                      onTap: () => setState(() => _showPrivateVisits = false),
+                      onTap: () => setState(() {
+                        _showPrivateVisits = false;
+                        _hasUserManuallySelectedTab = true;
+                      }),
                       count: publicVisits.length,
                     ),
                   ),
@@ -543,120 +551,295 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildVisitCard(Visit visit) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    final l10n = AppLocalizations.of(context)!;
+    
+    return GestureDetector(
+      onTap: () => _openVisitDetail(visit),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      _formatDate(visit.date),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+            // Photo and header section
+            Container(
+              height: 120,
+              child: Row(
+                children: [
+                  // Photo preview
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3F4F6),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: visit.isPublic 
-                            ? const Color(0xFFDCFCE7)
-                            : const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            visit.isPublic ? Icons.public : Icons.lock,
-                            size: 10,
-                            color: visit.isPublic 
-                                ? const Color(0xFF16A34A)
-                                : const Color(0xFF6B7280),
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            visit.isPublic ? 'Public' : 'Private',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color: visit.isPublic 
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFF6B7280),
+                    child: visit.photoUrls.isNotEmpty
+                        ? Stack(
+                            children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    bottomLeft: Radius.circular(16),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 40,
+                                    color: const Color(0xFF9CA3AF),
+                                  ),
+                                ),
+                              ),
+                              if (visit.photoUrls.length > 1)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '+${visit.photoUrls.length - 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          )
+                        : Center(
+                            child: Icon(
+                              Icons.photo_library_outlined,
+                              size: 32,
+                              color: const Color(0xFF9CA3AF),
                             ),
+                          ),
+                  ),
+                  
+                  // Content section
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Date and privacy row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDateShort(visit.date),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF111827),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: visit.isPublic
+                                      ? const Color(0xFFDCFCE7)
+                                      : const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      visit.isPublic ? Icons.public : Icons.lock,
+                                      size: 12,
+                                      color: visit.isPublic
+                                          ? const Color(0xFF16A34A)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      visit.isPublic ? 'Public' : 'Private',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        color: visit.isPublic
+                                            ? const Color(0xFF16A34A)
+                                            : const Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // Notes preview
+                          if (visit.notes?.isNotEmpty == true)
+                            Text(
+                              visit.notes!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          
+                          // Bottom row with stats and rating
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Quick stats
+                              Row(
+                                children: [
+                                  if (visit.totalCost != null) ...[
+                                    Icon(Icons.euro, size: 14, color: const Color(0xFF6B7280)),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      visit.totalCost!.toStringAsFixed(0),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                  if (visit.totalCost != null && visit.duration != null)
+                                    const SizedBox(width: 8),
+                                  if (visit.duration != null) ...[
+                                    Icon(Icons.access_time, size: 14, color: const Color(0xFF6B7280)),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${visit.duration!.inHours}h${visit.duration!.inMinutes % 60 > 0 ? ' ${visit.duration!.inMinutes % 60}m' : ''}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                  if (visit.activities.isNotEmpty && (visit.totalCost != null || visit.duration != null))
+                                    const SizedBox(width: 8),
+                                  if (visit.activities.isNotEmpty) ...[
+                                    Icon(Icons.local_activity, size: 14, color: const Color(0xFF6B7280)),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '${visit.activities.length}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF6B7280),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              
+                              // Rating
+                              if (visit.overallRating != null)
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      size: 16,
+                                      color: const Color(0xFFFB923C),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      visit.overallRating!.toStringAsFixed(1),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF111827),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-                if (visit.overallRating != null)
-                  Row(
-                    children: List.generate(5, (index) {
-                      return Icon(
-                        index < visit.overallRating! ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: Colors.amber,
-                      );
-                    }),
                   ),
-              ],
-            ),
-
-            if (visit.activities.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: visit.activities.map((activity) {
-                  return Chip(
-                    label: Text(activity.name),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  );
-                }).toList(),
-              ),
-            ],
-
-            if (visit.notes != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                visit.notes!,
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-
-            if (visit.duration != null || visit.totalCost != null) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  if (visit.duration != null) ...[
-                    const Icon(Icons.access_time, size: 16),
-                    const SizedBox(width: 4),
-                    Text('${visit.duration!.inHours}h ${visit.duration!.inMinutes % 60}min'),
-                  ],
-                  if (visit.duration != null && visit.totalCost != null)
-                    const SizedBox(width: 16),
-                  if (visit.totalCost != null) ...[
-                    const Icon(Icons.euro, size: 16),
-                    const SizedBox(width: 4),
-                    Text('${visit.totalCost!.toStringAsFixed(2)}'),
-                  ],
                 ],
               ),
-            ],
+            ),
+            
+            // View Details button
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.viewDetails,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF3B82F6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 14,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  void _openVisitDetail(Visit visit) {
+    // Get place name from metadata or use a fallback
+    final placeName = visit.metadata['placeName']?.toString() ?? 
+                     widget.placeView.place.name;
+                     
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => VisitDetailScreen(
+          visit: visit,
+          placeName: placeName,
+        ),
+      ),
+    );
+  }
+
+  String _formatDateShort(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final visitDate = DateTime(date.year, date.month, date.day);
+
+    if (visitDate == today) {
+      return 'Today, ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } else if (visitDate == today.subtract(const Duration(days: 1))) {
+      return 'Yesterday';
+    } else {
+      return '${date.day}.${date.month}.${date.year}';
+    }
   }
 
   Widget _buildInfoTab() {

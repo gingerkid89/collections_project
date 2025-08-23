@@ -216,9 +216,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'A beautiful app for collecting and tracking special places you visit.';
 
   @override
-  String visitDetails(Object placeName) {
-    return 'Visit: $placeName';
-  }
+  String get visitDetails => 'Visit Details';
 
   @override
   String get save => 'Save';
@@ -245,7 +243,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get required => 'required';
 
   @override
-  String get notes => 'Notes (optional)';
+  String get notes => 'Notes';
 
   @override
   String get visitNotes => 'How was your visit?';
@@ -523,4 +521,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privateDataDescription => 'Only you can see your data';
+
+  @override
+  String get editVisit => 'Edit Visit';
+
+  @override
+  String get deleteVisit => 'Delete Visit';
+
+  @override
+  String get shareVisit => 'Share Visit';
+
+  @override
+  String get viewDetails => 'View Details';
+
+  @override
+  String get activities => 'Activities';
+
+  @override
+  String get cost => 'Cost';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get noPhotos => 'No photos';
+
+  @override
+  String get photoGallery => 'Photo Gallery';
+
+  @override
+  String get confirmDelete => 'Delete Visit';
+
+  @override
+  String get confirmDeleteMessage =>
+      'Are you sure you want to delete this visit? This action cannot be undone.';
+
+  @override
+  String get delete => 'Delete';
 }

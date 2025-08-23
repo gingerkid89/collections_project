@@ -177,5 +177,21 @@
   "photoRemoved": "Foto entfernt",
   "errorLoadingPhoto": "Fehler beim Laden des Fotos",
   "publicDataDescription": "Deine Bewertungen können von anderen gesehen werden",
-  "privateDataDescription": "Nur du kannst deine Daten sehen"
+  "privateDataDescription": "Nur du kannst deine Daten sehen",
+  "visitDetails": "Besuch Details",
+  "editVisit": "Besuch bearbeiten",
+  "deleteVisit": "Besuch löschen",
+  "shareVisit": "Besuch teilen",
+  "viewDetails": "Details anzeigen",
+  "notes": "Notizen",
+  "activities": "Aktivitäten",
+  "cost": "Kosten",
+  "duration": "Dauer",
+  "location": "Ort",
+  "noPhotos": "Keine Fotos",
+  "photoGallery": "Fotogalerie",
+  "confirmDelete": "Besuch löschen",
+  "confirmDeleteMessage": "Sind Sie sicher, dass Sie diesen Besuch löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "cancel": "Abbrechen",
+  "delete": "Löschen"
 }

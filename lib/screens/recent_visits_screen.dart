@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/visits_provider.dart';
 import '../models/visit.dart';
+import '../services/api_simulation.dart';
 
 class RecentVisitsScreen extends StatelessWidget {
   const RecentVisitsScreen({super.key});
@@ -127,18 +128,109 @@ class PersonalVisitsTab extends StatelessWidget {
   }
 }
 
-class PublicVisitsTab extends StatelessWidget {
+class PublicVisitsTab extends StatefulWidget {
   const PublicVisitsTab({super.key});
+
+  @override
+  State<PublicVisitsTab> createState() => _PublicVisitsTabState();
+}
+
+class _PublicVisitsTabState extends State<PublicVisitsTab> {
+  List<Visit> _publicVisits = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPublicVisits();
+  }
+
+  Future<void> _loadPublicVisits() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final apiSimulation = ApiSimulation();
+      final visits = await apiSimulation.fetchAllPublicVisits();
+      
+      if (mounted) {
+        setState(() {
+          _publicVisits = visits;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // TODO: Replace with actual API call to fetch public visits
-    return _buildEmptyState(
-      icon: Icons.public_off,
-      title: l10n.noPublicVisits,
-      subtitle: l10n.comingSoon,
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading public visits',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: _loadPublicVisits,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_publicVisits.isEmpty) {
+      return _buildEmptyState(
+        icon: Icons.public_off,
+        title: l10n.noPublicVisits,
+        subtitle: l10n.comingSoon,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadPublicVisits,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _publicVisits.length,
+        itemBuilder: (context, index) {
+          final visit = _publicVisits[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _PersonalVisitCard(visit: visit),
+          );
+        },
+      ),
     );
   }
 
@@ -193,13 +285,13 @@ class PublicVisitsTab extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.schedule,
+                  Icons.api,
                   size: 16,
                   color: const Color(0xFF0284C7),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'API Integration Placeholder',
+                  'API Simulation Active',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF0284C7),

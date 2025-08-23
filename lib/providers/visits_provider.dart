@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/visit.dart';
+import '../services/api_simulation.dart';
 
 class VisitsProvider extends ChangeNotifier {
   List<Visit> _visits = [];
@@ -11,7 +12,29 @@ class VisitsProvider extends ChangeNotifier {
   List<Visit> get visits => _visits;
   
   VisitsProvider() {
-    _loadVisits();
+    _initializeVisits();
+  }
+
+  Future<void> _initializeVisits() async {
+    await _loadVisits();
+    await _loadDummyDataIfNeeded();
+  }
+
+  Future<void> _loadDummyDataIfNeeded() async {
+    final apiSimulation = ApiSimulation();
+    
+    if (!(await apiSimulation.isDummyDataInitialized())) {
+      final dummyVisits = await apiSimulation.fetchPersonalVisits();
+      
+      for (final visit in dummyVisits) {
+        _visits.add(visit);
+      }
+      
+      await _saveVisits();
+      notifyListeners();
+      
+      debugPrint('VisitsProvider: Loaded ${dummyVisits.length} dummy visits');
+    }
   }
   
   // Get visits for a specific place

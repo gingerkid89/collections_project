@@ -70,7 +70,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.visitDetails(widget.museum.name)),
+        title: Text('${l10n.visitDetails} - ${widget.museum.name}'),
         backgroundColor: Colors.purple,
         foregroundColor: Colors.white,
         actions: [
