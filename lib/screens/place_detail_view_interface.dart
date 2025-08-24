@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../models/place.dart';
 import '../models/visit.dart';
 import '../models/place_statistic.dart';
@@ -596,20 +597,22 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                     child: visit.photoUrls.isNotEmpty
                         ? Stack(
                             children: [
-                              Container(
-                                decoration: const BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(16),
-                                    bottomLeft: Radius.circular(16),
-                                  ),
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(16),
+                                  bottomLeft: Radius.circular(16),
                                 ),
-                                child: Center(
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 40,
-                                    color: const Color(0xFF9CA3AF),
-                                  ),
-                                ),
+                                child: File(visit.photoUrls.first).existsSync()
+                                    ? Image.file(
+                                        File(visit.photoUrls.first),
+                                        width: 120,
+                                        height: 120,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return _buildPhotoPlaceholder();
+                                        },
+                                      )
+                                    : _buildPhotoPlaceholder(),
                               ),
                               if (visit.photoUrls.length > 1)
                                 Positioned(
@@ -932,6 +935,21 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           label: AppLocalizations.of(context)!.info,
         ),
       ],
+    );
+  }
+
+  Widget _buildPhotoPlaceholder() {
+    return Container(
+      width: 120,
+      height: 120,
+      color: const Color(0xFFF3F4F6),
+      child: Center(
+        child: Icon(
+          Icons.broken_image,
+          size: 40,
+          color: const Color(0xFF9CA3AF),
+        ),
+      ),
     );
   }
 

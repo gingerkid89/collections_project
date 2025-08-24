@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../l10n/app_localizations.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
@@ -472,11 +473,31 @@ class _PersonalVisitCard extends StatelessWidget {
                           child: Container(
                             width: 60,
                             height: 60,
-                            color: const Color(0xFFF3F4F6),
-                            child: Icon(
-                              Icons.image,
-                              color: const Color(0xFF9CA3AF),
-                            ),
+                            child: File(visit.photoUrls[index]).existsSync()
+                                ? Image.file(
+                                    File(visit.photoUrls[index]),
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: const Color(0xFFF3F4F6),
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          color: const Color(0xFF9CA3AF),
+                                          size: 24,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    color: const Color(0xFFF3F4F6),
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: const Color(0xFF9CA3AF),
+                                      size: 24,
+                                    ),
+                                  ),
                           ),
                         ),
                       );

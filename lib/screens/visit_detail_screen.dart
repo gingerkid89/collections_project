@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../l10n/app_localizations.dart';
 import '../models/visit.dart';
 import '../providers/visits_provider.dart';
@@ -156,16 +157,7 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
               return Container(
                 color: const Color(0xFF111827),
                 child: Center(
-                  child: Container(
-                    width: double.infinity,
-                    height: 300,
-                    color: const Color(0xFFF3F4F6),
-                    child: Icon(
-                      Icons.image,
-                      size: 80,
-                      color: const Color(0xFF9CA3AF),
-                    ),
-                  ),
+                  child: _buildPhotoImage(widget.visit.photoUrls[index]),
                 ),
               );
             },
@@ -589,6 +581,77 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
     // TODO: Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Share functionality coming soon')),
+    );
+  }
+
+  Widget _buildPhotoImage(String photoPath) {
+    return GestureDetector(
+      onTap: () => _showFullScreenPhoto(photoPath),
+      child: Container(
+        width: double.infinity,
+        height: 300,
+        child: File(photoPath).existsSync()
+            ? Image.file(
+                File(photoPath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPhotoError();
+                },
+              )
+            : _buildPhotoError(),
+      ),
+    );
+  }
+
+  Widget _buildPhotoError() {
+    return Container(
+      width: double.infinity,
+      height: 300,
+      color: const Color(0xFFF3F4F6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.broken_image,
+            size: 64,
+            color: const Color(0xFF9CA3AF),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Photo not found',
+            style: TextStyle(
+              fontSize: 16,
+              color: const Color(0xFF6B7280),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullScreenPhoto(String photoPath) {
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.file(
+                File(photoPath),
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPhotoError();
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
