@@ -4,11 +4,58 @@ import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'providers/locale_provider.dart';
 import 'providers/visits_provider.dart';
+import 'providers/user_provider.dart';
 import 'l10n/app_localizations.dart';
 
 
 void main() {
   runApp(const MyApp());
+}
+
+class AppInitializer extends StatefulWidget {
+  final Widget child;
+  
+  const AppInitializer({super.key, required this.child});
+  
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> {
+  bool _isInitialized = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Schedule initialization for the next frame to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
+  }
+  
+  Future<void> _initializeApp() async {
+    final userProvider = context.read<UserProvider>();
+    await userProvider.tryAutoLogin();
+    
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    return widget.child;
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -19,6 +66,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => LocaleProvider()),
+        ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => VisitsProvider()),
       ],
       child: Consumer<LocaleProvider>(
@@ -41,7 +89,7 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
 
-            home: const HomeScreen(),
+            home: const AppInitializer(child: HomeScreen()),
             debugShowCheckedModeBanner: false,
           );
         },

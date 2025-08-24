@@ -162,11 +162,11 @@
   "privacyDescription": "Wählen Sie, ob Ihre Besuchsdaten öffentlich geteilt oder privat gehalten werden sollen",
   "recentVisits": "Letzte Besuche",
   "myVisits": "Meine Besuche",
-  "publicVisits": "Öffentliche Besuche",
+  "publicVisits": "Besuche von anderen",
   "noVisitsYet": "Noch keine Besuche aufgezeichnet",
   "startExploring": "Beginne zu erkunden, um deine Besuche hier zu sehen",
-  "noPublicVisits": "Keine öffentlichen Besuche verfügbar",
-  "comingSoon": "Bald verfügbar - erkunde was andere entdeckt haben",
+  "noPublicVisits": "Keine Besuche von anderen",
+  "comingSoon": "Wenn andere Nutzer Besuche teilen, erscheinen sie hier",
   "privateVisits": "Private Besuche",
   "publicVisitsPlace": "Öffentliche Besuche",
   "noPrivateVisits": "Noch keine privaten Besuche",
@@ -193,5 +193,10 @@
   "confirmDelete": "Besuch löschen",
   "confirmDeleteMessage": "Sind Sie sicher, dass Sie diesen Besuch löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
   "cancel": "Abbrechen",
-  "delete": "Löschen"
+  "delete": "Löschen",
+  "visitsByOtherUsers": "Besuche von anderen",
+  "noMyVisits": "Noch keine Besuche",
+  "noVisitsByOtherUsers": "Keine Besuche von anderen",
+  "switchToOthersVisits": "Schauen Sie sich Besuche von anderen an",
+  "switchToMyVisits": "Zu Ihren Besuchen wechseln"
 }

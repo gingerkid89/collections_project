@@ -469,17 +469,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get myVisits => 'Meine Besuche';
 
   @override
-  String get publicVisits => 'Öffentliche Besuche';
+  String get publicVisits => 'Besuche von anderen';
 
   @override
   String get startExploring =>
       'Beginne zu erkunden, um deine Besuche hier zu sehen';
 
   @override
-  String get noPublicVisits => 'Keine öffentlichen Besuche verfügbar';
+  String get noPublicVisits => 'Keine Besuche von anderen';
 
   @override
-  String get comingSoon => 'Bald verfügbar - erkunde was andere entdeckt haben';
+  String get comingSoon =>
+      'Wenn andere Nutzer Besuche teilen, erscheinen sie hier';
 
   @override
   String get privateVisits => 'Private Besuche';
@@ -564,4 +565,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get delete => 'Löschen';
+
+  @override
+  String get visitsByOtherUsers => 'Besuche von anderen';
+
+  @override
+  String get noMyVisits => 'Noch keine Besuche';
+
+  @override
+  String get noVisitsByOtherUsers => 'Keine Besuche von anderen';
+
+  @override
+  String get switchToOthersVisits => 'Schauen Sie sich Besuche von anderen an';
+
+  @override
+  String get switchToMyVisits => 'Zu Ihren Besuchen wechseln';
 }

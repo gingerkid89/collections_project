@@ -4,6 +4,7 @@ import 'visit_activity.dart';
 
 class Visit {
   final String id;
+  final String userId; // ID of the user who created this visit
   final DateTime date;
   final String placeId;
   final String placeType; // 'restaurant', 'museum', 'park'
@@ -18,6 +19,7 @@ class Visit {
 
   const Visit({
     required this.id,
+    required this.userId,
     required this.date,
     required this.placeId,
     required this.placeType,
@@ -33,6 +35,7 @@ class Visit {
 
   // Factory constructor for creating visits
   factory Visit.create({
+    required String userId,
     required DateTime date,
     required String placeId,
     required String placeType,
@@ -47,6 +50,7 @@ class Visit {
   }) {
     return Visit(
       id: _generateId(),
+      userId: userId,
       date: date,
       placeId: placeId,
       placeType: placeType,
@@ -64,6 +68,7 @@ class Visit {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'date': date.toIso8601String(),
       'placeId': placeId,
       'placeType': placeType,
@@ -81,6 +86,7 @@ class Visit {
   factory Visit.fromJson(Map<String, dynamic> json) {
     return Visit(
       id: json['id'] ?? '',
+      userId: json['userId'] ?? '',
       date: DateTime.parse(json['date']),
       placeId: json['placeId'] ?? '',
       placeType: json['placeType'] ?? '',
@@ -101,6 +107,7 @@ class Visit {
 
   Visit copyWith({
     String? id,
+    String? userId,
     DateTime? date,
     String? placeId,
     String? placeType,
@@ -115,6 +122,7 @@ class Visit {
   }) {
     return Visit(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       date: date ?? this.date,
       placeId: placeId ?? this.placeId,
       placeType: placeType ?? this.placeType,

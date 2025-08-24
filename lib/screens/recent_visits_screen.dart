@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/visits_provider.dart';
+import '../providers/user_provider.dart';
 import '../models/visit.dart';
 import '../services/api_simulation.dart';
+import 'visit_detail_screen.dart';
 
 class RecentVisitsScreen extends StatelessWidget {
   const RecentVisitsScreen({super.key});
@@ -51,9 +53,10 @@ class PersonalVisitsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
-    return Consumer<VisitsProvider>(
-      builder: (context, visitsProvider, child) {
-        final visits = visitsProvider.visits;
+    return Consumer2<VisitsProvider, UserProvider>(
+      builder: (context, visitsProvider, userProvider, child) {
+        final currentUserId = userProvider.currentUserId ?? '';
+        final visits = visitsProvider.getUserVisits(currentUserId);
         
         if (visits.isEmpty) {
           return _buildEmptyState(
@@ -74,7 +77,9 @@ class PersonalVisitsTab extends StatelessWidget {
             final visit = sortedVisits[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _PersonalVisitCard(visit: visit),
+              child: _PersonalVisitCard(
+                visit: visit,
+              ),
             );
           },
         );
@@ -153,8 +158,13 @@ class _PublicVisitsTabState extends State<PublicVisitsTab> {
         _error = null;
       });
 
-      final apiSimulation = ApiSimulation();
-      final visits = await apiSimulation.fetchAllPublicVisits();
+      // Simulate network delay for better UX
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      final userProvider = context.read<UserProvider>();
+      final currentUserId = userProvider.currentUserId ?? '';
+      final visitsProvider = context.read<VisitsProvider>();
+      final visits = visitsProvider.getPublicVisitsFromOtherUsers(currentUserId);
       
       if (mounted) {
         setState(() {
@@ -227,7 +237,9 @@ class _PublicVisitsTabState extends State<PublicVisitsTab> {
           final visit = _publicVisits[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _PersonalVisitCard(visit: visit),
+            child: _PersonalVisitCard(
+              visit: visit,
+            ),
           );
         },
       ),
@@ -310,164 +322,184 @@ class _PublicVisitsTabState extends State<PublicVisitsTab> {
 class _PersonalVisitCard extends StatelessWidget {
   final Visit visit;
 
-  const _PersonalVisitCard({required this.visit});
+  const _PersonalVisitCard({
+    required this.visit,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        visit.metadata['placeName']?.toString() ?? 'Visit #${visit.placeId}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDate(visit.date),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    if (visit.isPublic)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDCFCE7),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.public,
-                              size: 12,
-                              color: const Color(0xFF16A34A),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Public',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Color(0xFF16A34A),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (!visit.isPublic)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.lock,
-                              size: 12,
-                              color: const Color(0xFF6B7280),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Private',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Color(0xFF6B7280),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-            if (visit.overallRating != null) ...[
-              const SizedBox(height: 12),
+      child: InkWell(
+        onTap: () => _navigateToVisitDetail(context),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
-                  Icon(
-                    Icons.star,
-                    size: 16,
-                    color: const Color(0xFFFB923C),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${visit.overallRating!.toStringAsFixed(1)}/5',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF111827),
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          visit.metadata['placeName']?.toString() ?? 'Visit #${visit.placeId}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _formatDate(visit.date),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  Row(
+                    children: [
+                      if (visit.isPublic)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.public,
+                                size: 12,
+                                color: const Color(0xFF16A34A),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Public',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF16A34A),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (!visit.isPublic)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.lock,
+                                size: 12,
+                                color: const Color(0xFF6B7280),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Private',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF6B7280),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
-            ],
-            if (visit.notes?.isNotEmpty == true) ...[
-              const SizedBox(height: 12),
-              Text(
-                visit.notes!,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF4B5563),
+              if (visit.overallRating != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.star,
+                      size: 16,
+                      color: const Color(0xFFFB923C),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${visit.overallRating!.toStringAsFixed(1)}/5',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF111827),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            if (visit.photoUrls.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 60,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: visit.photoUrls.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          color: const Color(0xFFF3F4F6),
-                          child: Icon(
-                            Icons.image,
-                            color: const Color(0xFF9CA3AF),
+              ],
+              if (visit.notes?.isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                Text(
+                  visit.notes!,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF4B5563),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+              if (visit.photoUrls.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: visit.photoUrls.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            color: const Color(0xFFF3F4F6),
+                            child: Icon(
+                              Icons.image,
+                              color: const Color(0xFF9CA3AF),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToVisitDetail(BuildContext context) {
+    final placeName = visit.metadata['placeName']?.toString() ?? 
+                     'Visit #${visit.placeId}';
+                     
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => VisitDetailScreen(
+          visit: visit,
+          placeName: placeName,
         ),
       ),
     );

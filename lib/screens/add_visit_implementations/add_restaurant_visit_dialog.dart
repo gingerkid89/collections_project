@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
 import '../../models/menu_item.dart';
 import '../../models/visit.dart';
 import '../../models/visit_activity.dart';
+import '../../providers/user_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 class AddRestaurantVisitDialog extends StatefulWidget {
@@ -648,7 +650,11 @@ class _AddRestaurantVisitDialogState extends State<AddRestaurantVisitDialog> {
       );
     }).toList();
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUserId = userProvider.currentUserId ?? '';
+    
     return Visit.create(
+      userId: currentUserId,
       date: visitDateTime,
       placeId: widget.restaurant.id,
       placeType: 'restaurant',

@@ -112,6 +112,7 @@ class ApiSimulation {
   List<Visit> _generateMcDonaldsVisits() {
     return [
       Visit.create(
+        userId: 'user_123', // Current user ID
         date: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
         placeId: 'mc_1',
         placeType: 'restaurant',
@@ -130,6 +131,7 @@ class ApiSimulation {
       ),
       
       Visit.create(
+        userId: 'user_456', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 3)),
         placeId: 'mc_2', 
         placeType: 'restaurant',
@@ -148,6 +150,7 @@ class ApiSimulation {
       ),
 
       Visit.create(
+        userId: 'user_789', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 8, hours: 5)),
         placeId: 'mc_3',
         placeType: 'restaurant',
@@ -171,6 +174,7 @@ class ApiSimulation {
   List<Visit> _generateStarbucksVisits() {
     return [
       Visit.create(
+        userId: 'user_123', // Current user ID
         date: DateTime.now().subtract(const Duration(hours: 6)),
         placeId: 'sb_1',
         placeType: 'restaurant', 
@@ -190,6 +194,7 @@ class ApiSimulation {
       ),
 
       Visit.create(
+        userId: 'user_456', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 5, hours: 3)),
         placeId: 'sb_2',
         placeType: 'restaurant',
@@ -210,6 +215,7 @@ class ApiSimulation {
   List<Visit> _generateMuseumVisits() {
     return [
       Visit.create(
+        userId: 'user_123', // Current user ID
         date: DateTime.now().subtract(const Duration(days: 5, hours: 3)),
         placeId: 'museum_1',
         placeType: 'museum',
@@ -228,6 +234,7 @@ class ApiSimulation {
       ),
       
       Visit.create(
+        userId: 'user_456', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 7)),
         placeId: 'museum_3',
         placeType: 'museum',
@@ -245,6 +252,7 @@ class ApiSimulation {
       ),
 
       Visit.create(
+        userId: 'user_789', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 10, hours: 4)),
         placeId: 'museum_2',
         placeType: 'museum',
@@ -266,6 +274,7 @@ class ApiSimulation {
   List<Visit> _generateItalianRestaurantVisits() {
     return [
       Visit.create(
+        userId: 'user_123', // Current user ID
         date: DateTime.now().subtract(const Duration(days: 2, hours: 8)),
         placeId: 'italian_1',
         placeType: 'restaurant',
@@ -284,6 +293,7 @@ class ApiSimulation {
       ),
       
       Visit.create(
+        userId: 'user_456', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 4, hours: 12)),
         placeId: 'italian_2',
         placeType: 'restaurant',
@@ -303,6 +313,7 @@ class ApiSimulation {
       ),
       
       Visit.create(
+        userId: 'user_789', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 6)),
         placeId: 'italian_3',
         placeType: 'restaurant',
@@ -321,6 +332,7 @@ class ApiSimulation {
       ),
 
       Visit.create(
+        userId: 'user_456', // Other user ID
         date: DateTime.now().subtract(const Duration(days: 9, hours: 7)),
         placeId: 'italian_4',
         placeType: 'restaurant',
@@ -344,6 +356,9 @@ class ApiSimulation {
   List<Visit> _generatePublicVisitsForPlace(String placeId) {
     final random = Random();
     final visits = <Visit>[];
+    
+    // Other user IDs for simulation
+    final otherUserIds = ['user_456', 'user_789', 'user_101', 'user_202', 'user_303'];
 
     // Generate 1-3 public visits from "other users" for the specified place
     final visitCount = 1 + random.nextInt(3);
@@ -353,6 +368,7 @@ class ApiSimulation {
       final rating = 3.0 + random.nextDouble() * 2.0; // 3.0-5.0 rating
       
       visits.add(Visit.create(
+        userId: otherUserIds[random.nextInt(otherUserIds.length)], // Random other user
         date: DateTime.now().subtract(Duration(days: daysAgo, hours: random.nextInt(24))),
         placeId: placeId,
         placeType: _getPlaceTypeFromId(placeId),

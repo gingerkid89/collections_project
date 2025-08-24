@@ -983,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @publicVisits.
   ///
   /// In en, this message translates to:
-  /// **'Public Visits'**
+  /// **'Visits by Other Users'**
   String get publicVisits;
 
   /// No description provided for @startExploring.
@@ -995,13 +995,13 @@ abstract class AppLocalizations {
   /// No description provided for @noPublicVisits.
   ///
   /// In en, this message translates to:
-  /// **'No public visits available'**
+  /// **'No visits by other users'**
   String get noPublicVisits;
 
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:
-  /// **'Coming soon - explore what others have discovered'**
+  /// **'When other users share visits, they\'ll appear here'**
   String get comingSoon;
 
   /// No description provided for @privateVisits.
@@ -1159,6 +1159,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete;
+
+  /// No description provided for @visitsByOtherUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Visits by Other Users'**
+  String get visitsByOtherUsers;
+
+  /// No description provided for @noMyVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits yet'**
+  String get noMyVisits;
+
+  /// No description provided for @noVisitsByOtherUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No visits by other users'**
+  String get noVisitsByOtherUsers;
+
+  /// No description provided for @switchToOthersVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out visits by other users'**
+  String get switchToOthersVisits;
+
+  /// No description provided for @switchToMyVisits.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to your visits'**
+  String get switchToMyVisits;
 }
 
 class _AppLocalizationsDelegate

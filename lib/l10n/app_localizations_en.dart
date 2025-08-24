@@ -466,16 +466,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get myVisits => 'My Visits';
 
   @override
-  String get publicVisits => 'Public Visits';
+  String get publicVisits => 'Visits by Other Users';
 
   @override
   String get startExploring => 'Start exploring to see your visits here';
 
   @override
-  String get noPublicVisits => 'No public visits available';
+  String get noPublicVisits => 'No visits by other users';
 
   @override
-  String get comingSoon => 'Coming soon - explore what others have discovered';
+  String get comingSoon =>
+      'When other users share visits, they\'ll appear here';
 
   @override
   String get privateVisits => 'Private Visits';
@@ -558,4 +559,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get visitsByOtherUsers => 'Visits by Other Users';
+
+  @override
+  String get noMyVisits => 'No visits yet';
+
+  @override
+  String get noVisitsByOtherUsers => 'No visits by other users';
+
+  @override
+  String get switchToOthersVisits => 'Check out visits by other users';
+
+  @override
+  String get switchToMyVisits => 'Go to your visits';
 }

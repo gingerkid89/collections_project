@@ -8,6 +8,7 @@ import '../models/place_statistic.dart';
 import '../models/restaurant.dart';
 import '../models/museum.dart';
 import '../providers/visits_provider.dart';
+import '../providers/user_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_detail_screen.dart';
 // Dynamic imports to avoid circular dependency issues
@@ -364,17 +365,18 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildVisitsTab() {
-    return Consumer<VisitsProvider>(
-      builder: (context, visitsProvider, child) {
+    return Consumer2<VisitsProvider, UserProvider>(
+      builder: (context, visitsProvider, userProvider, child) {
         final l10n = AppLocalizations.of(context)!;
+        final currentUserId = userProvider.currentUserId ?? '';
         final allVisits = visitsProvider.getVisitsForPlace(widget.placeView.place.id);
         
-        // Filter visits based on privacy setting
-        final privateVisits = allVisits.where((visit) => !visit.isPublic).toList();
-        final publicVisits = allVisits.where((visit) => visit.isPublic).toList();
+        // Filter visits based on user ownership
+        final myVisits = allVisits.where((visit) => visit.userId == currentUserId).toList();
+        final otherUsersVisits = allVisits.where((visit) => visit.userId != currentUserId && visit.isPublic).toList();
         
-        // Auto-switch to public if no private visits and user hasn't manually selected
-        if (privateVisits.isEmpty && publicVisits.isNotEmpty && _showPrivateVisits && !_hasUserManuallySelectedTab) {
+        // Auto-switch to other users' visits if no my visits and user hasn't manually selected
+        if (myVisits.isEmpty && otherUsersVisits.isNotEmpty && _showPrivateVisits && !_hasUserManuallySelectedTab) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() {
@@ -384,7 +386,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           });
         }
         
-        final visitsToShow = _showPrivateVisits ? privateVisits : publicVisits;
+        final visitsToShow = _showPrivateVisits ? myVisits : otherUsersVisits;
 
         return Column(
           children: [
@@ -395,25 +397,25 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                 children: [
                   Expanded(
                     child: _buildToggleButton(
-                      label: l10n.privateVisits,
+                      label: l10n.myVisits,
                       isActive: _showPrivateVisits,
                       onTap: () => setState(() {
                         _showPrivateVisits = true;
                         _hasUserManuallySelectedTab = true;
                       }),
-                      count: privateVisits.length,
+                      count: myVisits.length,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildToggleButton(
-                      label: l10n.publicVisitsPlace,
+                      label: l10n.visitsByOtherUsers,
                       isActive: !_showPrivateVisits,
                       onTap: () => setState(() {
                         _showPrivateVisits = false;
                         _hasUserManuallySelectedTab = true;
                       }),
-                      count: publicVisits.length,
+                      count: otherUsersVisits.length,
                     ),
                   ),
                 ],
@@ -423,7 +425,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
             // Visit list or empty state
             Expanded(
               child: visitsToShow.isEmpty
-                  ? _buildEmptyVisitsState(l10n, _showPrivateVisits, privateVisits.isEmpty, publicVisits.isEmpty)
+                  ? _buildEmptyVisitsState(l10n, _showPrivateVisits, myVisits.isEmpty, otherUsersVisits.isEmpty)
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: visitsToShow.length,
@@ -448,7 +450,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF3B82F6) : const Color(0xFFF3F4F6),
           borderRadius: BorderRadius.circular(8),
@@ -459,12 +461,16 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? Colors.white : const Color(0xFF6B7280),
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                fontSize: 14,
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isActive ? Colors.white : const Color(0xFF6B7280),
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (count > 0) ...[
@@ -497,13 +503,13 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     String subtitle;
     
     if (showingPrivate) {
-      icon = Icons.lock;
-      title = l10n.noPrivateVisits;
-      subtitle = hasNoPublic ? l10n.addFirstVisit : l10n.switchToPublic;
+      icon = Icons.person;
+      title = l10n.noMyVisits;
+      subtitle = hasNoPublic ? l10n.addFirstVisit : l10n.switchToOthersVisits;
     } else {
-      icon = Icons.public_off;
-      title = l10n.noPublicVisitsForPlace;
-      subtitle = hasNoPrivate ? l10n.comingSoon : l10n.switchToPrivate;
+      icon = Icons.people_outline;
+      title = l10n.noVisitsByOtherUsers;
+      subtitle = hasNoPrivate ? l10n.comingSoon : l10n.switchToMyVisits;
     }
     
     return Center(
@@ -723,21 +729,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                                       ),
                                     ),
                                   ],
-                                  if (visit.totalCost != null && visit.duration != null)
-                                    const SizedBox(width: 8),
-                                  if (visit.duration != null) ...[
-                                    Icon(Icons.access_time, size: 14, color: const Color(0xFF6B7280)),
-                                    const SizedBox(width: 2),
-                                    Text(
-                                      '${visit.duration!.inHours}h${visit.duration!.inMinutes % 60 > 0 ? ' ${visit.duration!.inMinutes % 60}m' : ''}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF6B7280),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                  if (visit.activities.isNotEmpty && (visit.totalCost != null || visit.duration != null))
+                                  if (visit.activities.isNotEmpty && visit.totalCost != null)
                                     const SizedBox(width: 8),
                                   if (visit.activities.isNotEmpty) ...[
                                     Icon(Icons.local_activity, size: 14, color: const Color(0xFF6B7280)),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/visit.dart';
 import '../providers/visits_provider.dart';
+import '../providers/user_provider.dart';
 
 class VisitDetailScreen extends StatefulWidget {
   final Visit visit;
@@ -23,6 +24,12 @@ class VisitDetailScreen extends StatefulWidget {
 class _VisitDetailScreenState extends State<VisitDetailScreen> {
   late PageController _photoController;
   int _currentPhotoIndex = 0;
+
+  bool get showEditButtons {
+    final userProvider = context.read<UserProvider>();
+    final currentUserId = userProvider.currentUserId ?? '';
+    return widget.visit.userId == currentUserId;
+  }
 
   @override
   void initState() {
@@ -48,10 +55,11 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
         foregroundColor: const Color(0xFF111827),
         elevation: 0,
         actions: [
-          IconButton(
-            onPressed: () => _showEditOptions(context),
-            icon: const Icon(Icons.more_vert),
-          ),
+          if (showEditButtons)
+            IconButton(
+              onPressed: () => _showEditOptions(context),
+              icon: const Icon(Icons.more_vert),
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -389,13 +397,7 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
   Widget _buildVisitStats(AppLocalizations l10n) {
     final stats = <Widget>[];
 
-    if (widget.visit.duration != null) {
-      stats.add(_buildStatItem(
-        Icons.access_time,
-        l10n.duration,
-        widget.visit.formattedDuration,
-      ));
-    }
+    // Duration removed as requested
 
     if (widget.visit.totalCost != null) {
       stats.add(_buildStatItem(
@@ -479,22 +481,24 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _editVisit(),
-              icon: const Icon(Icons.edit),
-              label: Text(l10n.editVisit),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3B82F6),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          if (showEditButtons) ...[
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _editVisit(),
+                icon: const Icon(Icons.edit),
+                label: Text(l10n.editVisit),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -510,28 +514,30 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: const Icon(Icons.edit),
-              title: Text(l10n.editVisit),
-              onTap: () {
-                Navigator.pop(context);
-                _editVisit();
-              },
-            ),
+            if (showEditButtons) ...[
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: Text(l10n.editVisit),
+                onTap: () {
+                  Navigator.pop(context);
+                  _editVisit();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: Text(l10n.deleteVisit, style: const TextStyle(color: Colors.red)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showDeleteConfirmation();
+                },
+              ),
+            ],
             ListTile(
               leading: const Icon(Icons.share),
               title: Text(l10n.shareVisit),
               onTap: () {
                 Navigator.pop(context);
                 _shareVisit();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: Text(l10n.deleteVisit, style: const TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteConfirmation();
               },
             ),
           ],

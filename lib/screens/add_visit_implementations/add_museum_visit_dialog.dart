@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
 import '../../models/museum.dart';
 import '../../models/visit.dart';
 import '../../models/visit_activity.dart';
+import '../../providers/user_provider.dart';
 import '../../l10n/app_localizations.dart';
 
 class AddMuseumVisitDialog extends StatefulWidget {
@@ -135,16 +137,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
               ],
             ),
             
-            // Duration
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.timer),
-              title: Text(l10n.visitDuration),
-              subtitle: Text(visitDuration != null ? 
-                '${visitDuration!.inHours}h ${visitDuration!.inMinutes % 60}min' : 
-                l10n.notSpecified),
-              onTap: _selectDuration,
-            ),
+            // Duration removed as requested
             
             // Rating
             const SizedBox(height: 16),
@@ -449,70 +442,7 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
     }
   }
 
-  void _selectDuration() async {
-    final l10n = AppLocalizations.of(context)!;
-    int hours = visitDuration?.inHours ?? 2;
-    int minutes = visitDuration?.inMinutes.remainder(60) ?? 0;
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.visitDuration),
-        content: StatefulBuilder(
-          builder: (context, setDialogState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Text('${l10n.hours}: '),
-                  Expanded(
-                    child: Slider(
-                      value: hours.toDouble(),
-                      min: 0,
-                      max: 12,
-                      divisions: 12,
-                      label: '$hours h',
-                      onChanged: (value) => setDialogState(() => hours = value.toInt()),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Text('${l10n.minutes}: '),
-                  Expanded(
-                    child: Slider(
-                      value: minutes.toDouble(),
-                      min: 0,
-                      max: 59,
-                      divisions: 11,
-                      label: '$minutes min',
-                      onChanged: (value) => setDialogState(() => minutes = value.toInt()),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                visitDuration = Duration(hours: hours, minutes: minutes);
-              });
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+  // Duration selection method removed as requested
 
   void _showPhotoOptions() {
     final l10n = AppLocalizations.of(context)!;
@@ -648,13 +578,17 @@ class _AddMuseumVisitDialogState extends State<AddMuseumVisitDialog> {
       );
     }).toList();
 
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUserId = userProvider.currentUserId ?? '';
+    
     return Visit.create(
+      userId: currentUserId,
       date: visitDateTime,
       placeId: widget.museum.id,
       placeType: 'museum',
       overallRating: overallRating,
       notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-      duration: visitDuration,
+      duration: null, // Duration collection removed
       activities: exhibitionActivities,
       photoUrls: photoUrls,
       isPublic: isPublic,

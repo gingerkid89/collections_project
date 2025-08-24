@@ -1,9 +1,11 @@
 // lib/screens/place_detail_implementations/restaurant_detail_view.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/restaurant.dart';
 import '../../models/menu_item.dart';
 import '../../models/place_statistic.dart';
+import '../../providers/visits_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../place_detail_view_interface.dart';
 import '../add_visit_implementations/add_restaurant_visit_dialog.dart';
@@ -522,9 +524,15 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
       builder: (context) => AddRestaurantVisitDialog(restaurant: restaurant),
     );
     
-    // Return the visit to the calling navigator so collection screen can handle it
     if (visit != null && context.mounted) {
-      Navigator.of(context).pop(visit);
+      // Add the visit to provider directly instead of navigating away
+      final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+      await visitsProvider.addVisit(visit);
+      
+      // Show confirmation message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Visit saved successfully!')),
+      );
     }
   }
 
