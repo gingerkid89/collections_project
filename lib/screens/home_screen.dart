@@ -7,6 +7,7 @@ import '../models/location.dart';
 import 'collection_detail_screen.dart';
 import 'settings_screen.dart';
 import 'recent_visits_screen.dart';
+import 'collection_map_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -441,13 +442,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   final collection = collections[index];
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _CollectionCard(collection: collection),
+                    child: _CollectionCard(
+                      collection: collection,
+                      onMapPressed: () => _openCollectionMap(collection),
+                    ),
                   );
                 },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openCollectionMap(CollectionBase collection) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => CollectionMapScreen(collection: collection),
       ),
     );
   }
@@ -531,8 +543,12 @@ class _ViewModeButton extends StatelessWidget {
 
 class _CollectionCard extends StatelessWidget {
   final CollectionBase collection;
+  final VoidCallback onMapPressed;
 
-  const _CollectionCard({required this.collection});
+  const _CollectionCard({
+    required this.collection,
+    required this.onMapPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -648,7 +664,7 @@ class _CollectionCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: onMapPressed,
                 icon: const Icon(Icons.map, size: 16),
                 label: Text(l10n.map),
                 style: OutlinedButton.styleFrom(
@@ -676,4 +692,5 @@ class _CollectionCard extends StatelessWidget {
         return const Color(0xFF3B82F6);
     }
   }
+
 }
