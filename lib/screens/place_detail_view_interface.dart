@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/place.dart';
 import '../models/visit.dart';
@@ -16,6 +16,7 @@ import '../providers/user_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_detail_screen.dart';
 import 'collection_map_screen.dart';
+import '../widgets/place_collections_overview.dart';
 // Dynamic imports to avoid circular dependency issues
 // import 'place_detail_implementations/restaurant_detail_view.dart';
 // import 'place_detail_implementations/museum_detail_view.dart';
@@ -322,6 +323,11 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Collections Overview - shows which collections this place belongs to
+          PlaceCollectionsOverview(place: widget.placeView.place),
+          
+          const SizedBox(height: 16),
+          
           ...widget.placeView.getOverviewContent(context),
 
           const SizedBox(height: 24),
@@ -614,17 +620,9 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                                   topLeft: Radius.circular(16),
                                   bottomLeft: Radius.circular(16),
                                 ),
-                                child: File(visit.photoUrls.first).existsSync()
-                                    ? Image.file(
-                                        File(visit.photoUrls.first),
-                                        width: 120,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return _buildPhotoPlaceholder();
-                                        },
-                                      )
-                                    : _buildPhotoPlaceholder(),
+                                child: kIsWeb 
+                                    ? _buildPhotoPlaceholder()
+                                    : _buildPhotoWidget(visit.photoUrls.first),
                               ),
                               if (visit.photoUrls.length > 1)
                                 Positioned(
@@ -965,6 +963,13 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     );
   }
 
+  Widget _buildPhotoWidget(String photoUrl) {
+    // For now, just show placeholder on all platforms
+    // In production, this would handle real file paths on mobile
+    // and network URLs on web
+    return _buildPhotoPlaceholder();
+  }
+
   String _formatDate(DateTime date) {
     return '${date.day}.${date.month}.${date.year}';
   }
@@ -1016,7 +1021,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       final encodedAddress = Uri.encodeComponent(address);
       List<String> urlsToTry = [];
       
-      if (Platform.isIOS) {
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // Try Apple Maps first, then Google Maps as fallback
         urlsToTry = [
           'http://maps.apple.com/?daddr=$encodedAddress',

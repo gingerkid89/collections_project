@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/visit.dart';
 import '../models/visit_activity.dart';
+import '../models/collection_base.dart';
+import '../models/restaurant_collection.dart';
+import '../models/museum_collection.dart';
+import '../models/location.dart';
 
 class ApiSimulation {
   static final ApiSimulation _instance = ApiSimulation._internal();
@@ -488,5 +492,137 @@ class ApiSimulation {
     return String.fromCharCodes(
       Iterable.generate(length, (_) => chars.codeUnitAt(random.nextInt(chars.length)))
     );
+  }
+
+  /// Get McDonald's collection
+  Future<RestaurantCollection> getMcDonaldsCollection() async {
+    await Future.delayed(_apiDelay);
+    
+    return RestaurantCollection(
+      id: 'mcdonalds_collection',
+      name: 'McDonald\'s Collection',
+      iconEmoji: '🍟',
+      description: 'Famous global fast food chain with golden arches',
+      createdAt: DateTime(2024, 1, 1),
+      locations: await getMcDonaldsLocations(),
+      chainName: 'McDonald\'s',
+      brandColor: '#FFC72C',
+      website: 'https://www.mcdonalds.com',
+      menuCategories: ['Burgers', 'Chicken & Fish', 'Salads', 'Snacks & Sides', 'Breakfast', 'Beverages', 'Desserts & Shakes'],
+    );
+  }
+
+  /// Get McDonald's locations
+  Future<List<Location>> getMcDonaldsLocations() async {
+    await Future.delayed(_apiDelay);
+    
+    return [
+      Location(
+        id: 'mc_1',
+        name: 'McDonald\'s Hauptbahnhof',
+        address: 'Trankgasse 11, 50667 Köln',
+        latitude: 50.9429,
+        longitude: 6.9583,
+        imageUrls: ['mcdonalds_hbf_1.jpg', 'mcdonalds_hbf_2.jpg'],
+        features: ['24h', 'McCafé', 'Drive-Thru', 'WiFi'],
+        phone: '+49 221 12345678',
+        openingHours: '24/7',
+        averageRating: 4.1,
+        reviewCount: 127,
+      ),
+      Location(
+        id: 'mc_2',
+        name: 'McDonald\'s Schildergasse',
+        address: 'Schildergasse 65, 50667 Köln',
+        latitude: 50.9364,
+        longitude: 6.9534,
+        imageUrls: ['mcdonalds_schildergasse_1.jpg'],
+        features: ['McCafé', 'WiFi', 'PlayPlace'],
+        phone: '+49 221 87654321',
+        openingHours: 'Mo-Sa 06:00-24:00, So 07:00-24:00',
+        averageRating: 3.9,
+        reviewCount: 89,
+      ),
+      Location(
+        id: 'mc_3',
+        name: 'McDonald\'s Neumarkt',
+        address: 'Neumarkt 1, 50667 Köln',
+        latitude: 50.9356,
+        longitude: 6.9612,
+        imageUrls: ['mcdonalds_neumarkt_1.jpg', 'mcdonalds_neumarkt_2.jpg', 'mcdonalds_neumarkt_3.jpg'],
+        features: ['McCafé', 'WiFi', 'Kiosk Ordering'],
+        phone: '+49 221 11223344',
+        openingHours: 'Mo-Do 06:00-01:00, Fr-Sa 06:00-02:00, So 07:00-01:00',
+        averageRating: 4.0,
+        reviewCount: 156,
+      ),
+    ];
+  }
+
+  /// Get Museums collection
+  Future<MuseumCollection> getMuseumsCollection() async {
+    await Future.delayed(_apiDelay);
+    
+    return MuseumCollection(
+      id: 'cologne_museums_collection',
+      name: 'Cologne Museums',
+      iconEmoji: '🏛️',
+      description: 'Discover the rich cultural heritage of Cologne through its world-class museums',
+      createdAt: DateTime(2024, 1, 15),
+      locations: await getMuseumLocations(),
+      category: 'art',
+      exhibitions: ['Picasso Exhibition', 'Contemporary Art', 'Medieval Collections'],
+      ticketInfo: 'Adult tickets from €8-14, Students discount available',
+    );
+  }
+
+  /// Get Museum locations
+  Future<List<Location>> getMuseumLocations() async {
+    await Future.delayed(_apiDelay);
+    
+    return [
+      Location(
+        id: 'museum_1',
+        name: 'Museum Ludwig',
+        address: 'Heinrich-Böll-Platz, 50667 Köln',
+        latitude: 50.9406,
+        longitude: 6.9599,
+        imageUrls: ['museum_ludwig_1.jpg', 'museum_ludwig_2.jpg'],
+        features: ['Modern Art', 'Pop Art', 'Picasso Collection', 'Audio Guide', 'Café'],
+        phone: '+49 221 22126165',
+        website: 'https://www.museum-ludwig.de',
+        openingHours: 'Di-So 10:00-18:00, 1. Do/Monat 10:00-22:00',
+        averageRating: 4.6,
+        reviewCount: 342,
+      ),
+      Location(
+        id: 'museum_2',
+        name: 'Wallraf-Richartz-Museum',
+        address: 'Obenmarspforten 40, 50667 Köln',
+        latitude: 50.9347,
+        longitude: 6.9583,
+        imageUrls: ['wallraf_1.jpg', 'wallraf_2.jpg', 'wallraf_3.jpg'],
+        features: ['Classical Art', 'Medieval Art', 'Impressionism', 'Audio Guide'],
+        phone: '+49 221 22121119',
+        website: 'https://www.wallraf.museum',
+        openingHours: 'Di-So 10:00-18:00, Do 10:00-21:00',
+        averageRating: 4.4,
+        reviewCount: 278,
+      ),
+      Location(
+        id: 'museum_3',
+        name: 'Romano-Germanisches Museum',
+        address: 'Roncalliplatz 4, 50667 Köln',
+        latitude: 50.9406,
+        longitude: 6.9587,
+        imageUrls: ['romano_germanisches_1.jpg'],
+        features: ['Roman Artifacts', 'Dionysus Mosaic', 'Archaeological Finds'],
+        phone: '+49 221 22124438',
+        website: 'https://roemisch-germanisches-museum.de',
+        openingHours: 'Di-So 10:00-17:00',
+        averageRating: 4.3,
+        reviewCount: 198,
+      ),
+    ];
   }
 }

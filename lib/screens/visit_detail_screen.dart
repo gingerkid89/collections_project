@@ -1,12 +1,13 @@
 // lib/screens/visit_detail_screen.dart
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 import '../l10n/app_localizations.dart';
 import '../models/visit.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
+import 'edit_visit_screen.dart';
 
 class VisitDetailScreen extends StatefulWidget {
   final Visit visit;
@@ -570,11 +571,20 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
     Navigator.pop(context); // Go back to previous screen
   }
 
-  void _editVisit() {
-    // TODO: Navigate to edit visit screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Edit functionality coming soon')),
+  void _editVisit() async {
+    final result = await Navigator.of(context).push<Visit>(
+      MaterialPageRoute(
+        builder: (context) => EditVisitScreen(
+          visit: widget.visit,
+          placeName: widget.placeName,
+        ),
+      ),
     );
+    
+    if (result != null) {
+      // Visit was updated, pop back to refresh the list
+      Navigator.of(context).pop(result);
+    }
   }
 
   void _shareVisit() {
@@ -590,17 +600,18 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
       child: Container(
         width: double.infinity,
         height: 300,
-        child: File(photoPath).existsSync()
-            ? Image.file(
-                File(photoPath),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildPhotoError();
-                },
-              )
-            : _buildPhotoError(),
+        child: kIsWeb 
+            ? _buildPhotoError()
+            : _buildPhotoWidget(photoPath),
       ),
     );
+  }
+
+  Widget _buildPhotoWidget(String photoPath) {
+    // For now, just show placeholder on all platforms
+    // In production, this would handle real file paths on mobile
+    // and network URLs on web
+    return _buildPhotoError();
   }
 
   Widget _buildPhotoError() {
@@ -641,13 +652,7 @@ class _VisitDetailScreenState extends State<VisitDetailScreen> {
           ),
           body: Center(
             child: InteractiveViewer(
-              child: Image.file(
-                File(photoPath),
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildPhotoError();
-                },
-              ),
+              child: _buildPhotoWidget(photoPath),
             ),
           ),
         ),

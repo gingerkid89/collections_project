@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -172,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             
-            if (Platform.isIOS) ...[
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
               const SizedBox(height: 16),
               // Apple Sign-In (iOS only)
               SizedBox(
