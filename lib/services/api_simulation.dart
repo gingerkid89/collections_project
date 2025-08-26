@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/visit.dart';
 import '../models/visit_activity.dart';
@@ -504,6 +505,7 @@ class ApiSimulation {
       iconEmoji: '🍟',
       description: 'Famous global fast food chain with golden arches',
       createdAt: DateTime(2024, 1, 1),
+      color: Color(0xFFFFD700),
       locations: await getMcDonaldsLocations(),
       chainName: 'McDonald\'s',
       brandColor: '#FFC72C',
@@ -569,6 +571,7 @@ class ApiSimulation {
       iconEmoji: '🏛️',
       description: 'Discover the rich cultural heritage of Cologne through its world-class museums',
       createdAt: DateTime(2024, 1, 15),
+      color: Color(0xFF6366F1),
       locations: await getMuseumLocations(),
       category: 'art',
       exhibitions: ['Picasso Exhibition', 'Contemporary Art', 'Medieval Collections'],

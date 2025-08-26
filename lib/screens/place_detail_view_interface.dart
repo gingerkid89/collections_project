@@ -13,6 +13,7 @@ import '../models/collection_base.dart';
 import '../models/location.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
+import '../providers/collections_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_detail_screen.dart';
 import 'collection_map_screen.dart';
@@ -1018,23 +1019,43 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     }
 
     try {
+      // Try to get precise coordinates first
+      final location = _createLocationFromPlace(place);
       final encodedAddress = Uri.encodeComponent(address);
       List<String> urlsToTry = [];
       
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-        // Try Apple Maps first, then Google Maps as fallback
-        urlsToTry = [
-          'http://maps.apple.com/?daddr=$encodedAddress',
-          'comgooglemaps://?daddr=$encodedAddress',
-          'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
-        ];
+        // Try Apple Maps with coordinates first, then address fallback
+        if (location != null && location.latitude != 0.0 && location.longitude != 0.0) {
+          urlsToTry = [
+            'http://maps.apple.com/?daddr=${location.latitude},${location.longitude}',
+            'comgooglemaps://?daddr=${location.latitude},${location.longitude}',
+            'http://maps.apple.com/?daddr=$encodedAddress',
+            'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+          ];
+        } else {
+          urlsToTry = [
+            'http://maps.apple.com/?daddr=$encodedAddress',
+            'comgooglemaps://?daddr=$encodedAddress',
+            'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+          ];
+        }
       } else {
-        // Try Google Maps app first, then web version as fallback
-        urlsToTry = [
-          'google.navigation:q=$encodedAddress',
-          'geo:0,0?q=$encodedAddress',
-          'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
-        ];
+        // Try Google Maps with coordinates first, then address fallback
+        if (location != null && location.latitude != 0.0 && location.longitude != 0.0) {
+          urlsToTry = [
+            'google.navigation:q=${location.latitude},${location.longitude}',
+            'geo:${location.latitude},${location.longitude}?z=16',
+            'google.navigation:q=$encodedAddress',
+            'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+          ];
+        } else {
+          urlsToTry = [
+            'google.navigation:q=$encodedAddress',
+            'geo:0,0?q=$encodedAddress',
+            'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+          ];
+        }
       }
       
       bool launched = false;
@@ -1063,9 +1084,13 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
 
   Location? _createLocationFromPlace(Place place) {
     // Try to find the original location data by matching place ID with location ID
-    // This assumes that place IDs match location IDs in the home screen data
+    // First check if we can get the real location from the collections provider
+    final realLocation = _findOriginalLocation(place);
+    if (realLocation != null) {
+      return realLocation;
+    }
     
-    // Get coordinates based on known locations from the app
+    // Fallback: Get coordinates based on known locations from the app
     double latitude = 50.9429; // Default Cologne coordinates
     double longitude = 6.9584;
     
@@ -1087,6 +1112,26 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       website: place.info.website,
       isVisited: place.collectionStatus.isVisited,
     );
+  }
+  
+  Location? _findOriginalLocation(Place place) {
+    // Access collections provider to find the original location with validated coordinates
+    try {
+      final collectionsProvider = Provider.of<CollectionsProvider>(context, listen: false);
+      
+      // Search through all collections to find the location by ID
+      for (final collection in collectionsProvider.collections) {
+        for (final location in collection.locations) {
+          if (location.id == place.id) {
+            return location;
+          }
+        }
+      }
+    } catch (e) {
+      // Provider not available or other error, continue to fallback
+    }
+    
+    return null;
   }
 
   Map<String, double>? _getCoordinatesForPlace(Place place) {
@@ -1113,6 +1158,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       description: 'Single place view',
       createdAt: DateTime.now(),
       locations: [location],
+      color: Colors.grey,
       collectionType: place.type,
     );
   }
@@ -1138,6 +1184,7 @@ class _TempCollection extends CollectionBase {
     required super.description,
     required super.createdAt,
     required super.locations,
+    required super.color,
     required this.collectionType,
   });
 

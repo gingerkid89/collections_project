@@ -1,4 +1,5 @@
 // lib/models/restaurant_collection.dart
+import 'package:flutter/material.dart';
 import 'collection_base.dart';
 import 'location.dart';
 
@@ -16,6 +17,7 @@ class RestaurantCollection extends CollectionBase {
     required super.description,
     required super.createdAt,
     required super.locations,
+    required super.color,
     required this.chainName,
     required this.brandColor,
     required this.website,
@@ -40,6 +42,7 @@ class RestaurantCollection extends CollectionBase {
       iconEmoji: json['iconEmoji'],
       description: json['description'],
       createdAt: DateTime.parse(json['createdAt']),
+      color: Color(json['color'] ?? 0xFF3B82F6),
       chainName: json['specificProperties']['chainName'],
       brandColor: json['specificProperties']['brandColor'],
       website: json['specificProperties']['website'],

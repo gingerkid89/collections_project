@@ -1,5 +1,6 @@
 
 // lib/models/museum_collection.dart
+import 'package:flutter/material.dart';
 import 'collection_base.dart';
 import 'location.dart';
 
@@ -16,6 +17,7 @@ class MuseumCollection extends CollectionBase {
     required super.description,
     required super.createdAt,
     required super.locations,
+    required super.color,
     required this.category,
     this.exhibitions = const [],
     this.ticketInfo = '',
@@ -38,6 +40,7 @@ class MuseumCollection extends CollectionBase {
       iconEmoji: json['iconEmoji'],
       description: json['description'],
       createdAt: DateTime.parse(json['createdAt']),
+      color: Color(json['color'] ?? 0xFF6366F1),
       category: json['specificProperties']['category'],
       exhibitions: List<String>.from(json['specificProperties']['exhibitions'] ?? []),
       ticketInfo: json['specificProperties']['ticketInfo'] ?? '',

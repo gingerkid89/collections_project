@@ -22,9 +22,10 @@ class MockAuthService implements AuthService {
   static const String _userKey = 'current_user';
   static const String _tokenKey = 'auth_token';
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
+  // Disabled Google Sign-In for now to avoid web configuration issues
+  // final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //   scopes: ['email', 'profile'],
+  // );
 
   User? _currentUser;
 
@@ -103,32 +104,24 @@ class MockAuthService implements AuthService {
 
   @override
   Future<User?> signInWithGoogle() async {
-    try {
-      await Future.delayed(const Duration(milliseconds: 500));
+    // Temporarily disabled Google Sign-In to avoid web configuration issues
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Return a mock Google user for testing
+    final user = User(
+      id: _generateId(),
+      name: 'Test Google User',
+      email: 'test@google.com',
+      avatarUrl: null,
+      authProvider: AuthProvider.google,
+      createdAt: DateTime.now(),
+      lastActiveAt: DateTime.now(),
+    );
       
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
-      
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      final user = User(
-        id: _generateId(),
-        name: googleUser.displayName ?? googleUser.email.split('@').first,
-        email: googleUser.email,
-        avatarUrl: googleUser.photoUrl,
-        authProvider: AuthProvider.google,
-        createdAt: DateTime.now(),
-        lastActiveAt: DateTime.now(),
-      );
-      
-      await _saveUser(user);
-      await _storage.write(key: _tokenKey, value: googleAuth.accessToken);
-      _currentUser = user;
-      return user;
-      
-    } catch (e) {
-      throw Exception('Google Sign-In failed: ${e.toString()}');
-    }
+    await _saveUser(user);
+    await _storage.write(key: _tokenKey, value: 'mock_google_token');
+    _currentUser = user;
+    return user;
   }
 
   @override
@@ -171,7 +164,7 @@ class MockAuthService implements AuthService {
     await Future.delayed(const Duration(milliseconds: 300));
     
     if (_currentUser?.authProvider == AuthProvider.google) {
-      await _googleSignIn.signOut();
+      // await _googleSignIn.signOut(); // Disabled for now
     }
     
     await _storage.delete(key: _userKey);
@@ -230,9 +223,10 @@ class ProductionAuthService implements AuthService {
   static const String _userKey = 'current_user';
   static const String _tokenKey = 'auth_token';
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-  );
+  // Disabled Google Sign-In for production service too
+  // final GoogleSignIn _googleSignIn = GoogleSignIn(
+  //   scopes: ['email', 'profile'],
+  // );
 
   User? _currentUser;
 

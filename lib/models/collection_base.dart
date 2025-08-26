@@ -1,4 +1,5 @@
 // lib/models/collection_base.dart
+import 'package:flutter/material.dart';
 import 'location.dart';
 
 /// Abstraktes Interface für alle Collection-Typen
@@ -9,6 +10,7 @@ abstract class CollectionBase {
   final String description;
   final DateTime createdAt;
   final List<Location> locations;
+  final Color color;
 
   CollectionBase({
     required this.id,
@@ -17,6 +19,7 @@ abstract class CollectionBase {
     required this.description,
     required this.createdAt,
     required this.locations,
+    required this.color,
   });
 
   /// Abstrakte Methoden die jede Collection implementieren muss

@@ -1,4 +1,5 @@
 // lib/models/collection_factory.dart
+import 'package:flutter/material.dart';
 import 'collection_base.dart';
 import 'restaurant_collection.dart';
 import 'museum_collection.dart';
@@ -23,6 +24,7 @@ class CollectionFactory {
       iconEmoji: '🍟',
       description: 'Sammle alle McDonald\'s Restaurants in deiner Region',
       createdAt: DateTime.now(),
+      color: const Color(0xFFFFD700),
       chainName: "McDonald's",
       brandColor: '#FFC72C',
       website: 'mcdonalds.de',
@@ -38,6 +40,7 @@ class CollectionFactory {
       iconEmoji: '☕',
       description: 'Entdecke alle Starbucks Locations',
       createdAt: DateTime.now(),
+      color: const Color(0xFF00704A),
       chainName: 'Starbucks',
       brandColor: '#00704A',
       website: 'starbucks.de',
@@ -53,6 +56,7 @@ class CollectionFactory {
       iconEmoji: '🎨',
       description: 'Entdecke die Welt der Kunst',
       createdAt: DateTime.now(),
+      color: const Color(0xFF8B5CF6),
       category: 'art',
       ticketInfo: 'Erwachsene: 8-15€, Ermäßigt: 4-8€',
       locations: [],
@@ -66,6 +70,7 @@ class CollectionFactory {
       iconEmoji: '🔬',
       description: 'Wissenschaft zum Anfassen',
       createdAt: DateTime.now(),
+      color: const Color(0xFF06B6D4),
       category: 'science',
       ticketInfo: 'Erwachsene: 12-18€, Kinder: 6-10€',
       locations: [],
@@ -79,6 +84,7 @@ class CollectionFactory {
       iconEmoji: '🏛️',
       description: 'Besuche Museen und Ausstellungen',
       createdAt: DateTime.now(),
+      color: const Color(0xFF6366F1),
       category: 'mixed',
       ticketInfo: 'Preise variieren je nach Museum',
       locations: [],
@@ -92,6 +98,7 @@ class CollectionFactory {
       iconEmoji: '🍝',
       description: 'Entdecke authentische italienische Küche',
       createdAt: DateTime.now(),
+      color: const Color(0xFF008C45),
       chainName: 'Italian Restaurants',
       brandColor: '#008C45',
       website: 'italien-restaurants.de',

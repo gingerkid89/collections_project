@@ -8,6 +8,7 @@ import 'providers/visits_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/geofence_provider.dart';
+import 'providers/collections_provider.dart';
 import 'l10n/app_localizations.dart';
 
 
@@ -73,6 +74,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => VisitsProvider()),
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => GeofenceProvider()),
+        ChangeNotifierProvider(create: (context) => CollectionsProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, child) {

@@ -16,12 +16,19 @@ import '../l10n/app_localizations.dart';
 import 'place_detail_factory.dart';
 
 class CollectionMapScreen extends StatefulWidget {
-  final CollectionBase collection;
+  final CollectionBase? collection;
+  final List<CollectionBase>? collections;
+  final bool showAllPlaces;
 
   const CollectionMapScreen({
     super.key,
     required this.collection,
-  });
+  }) : collections = null, showAllPlaces = false;
+
+  const CollectionMapScreen.allPlaces({
+    super.key,
+    required this.collections,
+  }) : collection = null, showAllPlaces = true;
 
   @override
   State<CollectionMapScreen> createState() => _CollectionMapScreenState();
@@ -39,7 +46,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
   }
 
   void _fitBounds() {
-    final locations = widget.collection.locations
+    final locations = _getAllLocations()
         .where((loc) => loc.latitude != 0.0 && loc.longitude != 0.0)
         .toList();
     
@@ -62,13 +69,24 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
     }
   }
 
+  List<Location> _getAllLocations() {
+    if (widget.showAllPlaces && widget.collections != null) {
+      return widget.collections!
+          .expand((collection) => collection.locations)
+          .toList();
+    } else if (widget.collection != null) {
+      return widget.collection!.locations;
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.collection.name} ${l10n.map}'),
+        title: Text(widget.showAllPlaces ? 'All Places' : '${widget.collection!.name} Map'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
@@ -88,7 +106,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
             child: Row(
               children: [
                 Text(
-                  widget.collection.iconEmoji,
+                  widget.showAllPlaces ? '📍' : widget.collection!.iconEmoji,
                   style: const TextStyle(fontSize: 24),
                 ),
                 const SizedBox(width: 12),
@@ -97,14 +115,16 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        widget.collection.name,
+                        widget.showAllPlaces ? 'All Places' : widget.collection!.name,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       Text(
-                        '${widget.collection.visitedCount}/${widget.collection.totalCount} ${l10n.visited}',
+                        widget.showAllPlaces 
+                          ? '${_getTotalVisitedCount()}/${_getTotalLocationCount()} visited'
+                          : '${widget.collection!.visitedCount}/${widget.collection!.totalCount} visited',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -151,13 +171,35 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
   }
 
   List<Marker> _buildMarkers() {
-    return widget.collection.locations
+    final allLocations = _getAllLocations();
+    return allLocations
         .where((location) => location.latitude != 0.0 && location.longitude != 0.0)
         .map((location) => _buildMarker(location))
         .toList();
   }
 
+  int _getTotalVisitedCount() {
+    if (widget.collections == null) return 0;
+    return widget.collections!
+        .expand((collection) => collection.locations)
+        .where((location) => location.isVisited)
+        .length;
+  }
+
+  int _getTotalLocationCount() {
+    if (widget.collections == null) return 0;
+    return widget.collections!
+        .expand((collection) => collection.locations)
+        .length;
+  }
+
   Marker _buildMarker(Location location) {
+    final collection = _getCollectionForLocation(location);
+    final color = location.isVisited 
+        ? (collection?.color ?? Colors.grey)
+        : Colors.grey.shade400;
+    final emoji = collection?.iconEmoji ?? '📍';
+
     return Marker(
       point: LatLng(location.latitude, location.longitude),
       width: 50,
@@ -166,9 +208,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
         onTap: () => _navigateToLocationDetail(location),
         child: Container(
           decoration: BoxDecoration(
-            color: location.isVisited 
-                ? _getCollectionColor() 
-                : Colors.grey.shade400,
+            color: color,
             shape: BoxShape.circle,
             border: Border.all(
               color: Colors.white,
@@ -184,7 +224,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
           ),
           child: Center(
             child: Text(
-              widget.collection.iconEmoji,
+              emoji,
               style: const TextStyle(fontSize: 20),
             ),
           ),
@@ -193,9 +233,27 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
     );
   }
 
+  CollectionBase? _getCollectionForLocation(Location location) {
+    if (widget.showAllPlaces && widget.collections != null) {
+      // Find which collection this location belongs to
+      for (final collection in widget.collections!) {
+        if (collection.locations.any((loc) => loc.id == location.id)) {
+          return collection;
+        }
+      }
+      return null;
+    } else {
+      return widget.collection;
+    }
+  }
+
   Widget _buildBottomSheet() {
-    final visitedLocations = widget.collection.locations.where((l) => l.isVisited).length;
-    final totalLocations = widget.collection.locations.length;
+    final visitedLocations = widget.showAllPlaces 
+        ? _getTotalVisitedCount() 
+        : widget.collection!.locations.where((l) => l.isVisited).length;
+    final totalLocations = widget.showAllPlaces 
+        ? _getTotalLocationCount() 
+        : widget.collection!.locations.length;
     final progress = totalLocations > 0 ? visitedLocations / totalLocations : 0.0;
     
     return Container(
@@ -279,17 +337,12 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
   }
 
   Color _getCollectionColor() {
-    // Match colors from home screen
-    switch (widget.collection.iconEmoji) {
-      case '🍟':
-        return const Color(0xFFFBBF24); // McDonald's yellow
-      case '☕':
-        return const Color(0xFF10B981); // Starbucks green
-      case '🏛️':
-        return const Color(0xFF8B5CF6); // Museum purple
-      default:
-        return const Color(0xFF3B82F6); // Default blue
+    if (widget.showAllPlaces) {
+      return const Color(0xFF3B82F6); // Default blue for all places view
     }
+    
+    // Use the collection's color property
+    return widget.collection?.color ?? const Color(0xFF3B82F6);
   }
 
   void _navigateToLocationDetail(Location location) async {
@@ -372,7 +425,7 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        widget.collection.iconEmoji,
+                        _getCollectionForLocation(location)?.iconEmoji ?? '📍',
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
@@ -477,7 +530,10 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
   // Location to Place conversion methods
   Place? _convertLocationToPlace(Location location) {
     // Create a Place object from Location based on collection type
-    final collectionType = widget.collection.collectionType;
+    final collection = _getCollectionForLocation(location);
+    if (collection == null) return null;
+    
+    final collectionType = collection.collectionType;
     
     switch (collectionType) {
       case 'restaurant':
@@ -510,7 +566,8 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
   Restaurant _createRestaurantFromLocation(Location location) {
     // Determine restaurant type based on location name and collection
     final locationName = location.name.toLowerCase();
-    final collectionName = widget.collection.name.toLowerCase();
+    final collection = _getCollectionForLocation(location);
+    final collectionName = collection?.name.toLowerCase() ?? '';
     
     if (locationName.contains('starbucks') || collectionName.contains('starbucks')) {
       return _createStarbucksFromLocation(location);
