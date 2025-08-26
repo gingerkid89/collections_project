@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/geofence_provider.dart';
+import 'auth/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -51,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             [
               _buildLanguageTile(context, l10n, localeProvider),
               _buildNotificationTile(context, l10n),
+              _buildGeofencingTile(context, l10n),
             ],
           ),
 
@@ -132,19 +136,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildProfileTile(BuildContext context) {
-    return ListTile(
-      leading: const CircleAvatar(
-        backgroundColor: Color(0xFF3B82F6),
-        child: Icon(Icons.person, color: Colors.white),
-      ),
-      title: const Text(
-        'John Doe',
-        style: TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: const Text('john.doe@example.com'),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        // Navigate to profile editing
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final user = authProvider.user;
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundColor: const Color(0xFF3B82F6),
+            backgroundImage: user?.avatarUrl != null 
+                ? NetworkImage(user!.avatarUrl!) 
+                : null,
+            child: user?.avatarUrl == null 
+                ? const Icon(Icons.person, color: Colors.white) 
+                : null,
+          ),
+          title: Text(
+            user?.name ?? 'Guest User',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(user?.email ?? 'Not signed in'),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (user != null)
+                IconButton(
+                  onPressed: () => _showSignOutDialog(context),
+                  icon: const Icon(Icons.logout, color: Color(0xFF6B7280)),
+                ),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
+          onTap: () {
+            if (user == null) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            }
+          },
+        );
       },
     );
   }
@@ -400,6 +428,83 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         Text(l10n.aboutDescription),
       ],
+    );
+  }
+
+  Widget _buildGeofencingTile(BuildContext context, AppLocalizations l10n) {
+    return Consumer<GeofenceProvider>(
+      builder: (context, geofenceProvider, child) {
+        return SwitchListTile(
+          secondary: const Icon(Icons.location_on, color: Color(0xFF6B7280)),
+          title: const Text('Smart Visit Detection'),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Get notified when you visit places in your collections'),
+              if (geofenceProvider.errorMessage != null)
+                Text(
+                  geofenceProvider.errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 12),
+                ),
+              if (geofenceProvider.isEnabled && geofenceProvider.activeGeofencesCount > 0)
+                Text(
+                  '${geofenceProvider.activeGeofencesCount} places monitored',
+                  style: const TextStyle(color: Color(0xFF059669), fontSize: 12),
+                ),
+            ],
+          ),
+          value: geofenceProvider.isEnabled,
+          activeColor: const Color(0xFF3B82F6),
+          onChanged: geofenceProvider.isInitializing 
+              ? null 
+              : (value) async {
+                  await geofenceProvider.setGeofencingEnabled(value);
+                  
+                  if (value && geofenceProvider.errorMessage != null) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(geofenceProvider.errorMessage!),
+                          backgroundColor: Colors.red,
+                          action: SnackBarAction(
+                            label: 'Settings',
+                            onPressed: () {
+                              // Could open app settings for permissions
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+        );
+      },
+    );
+  }
+
+  void _showSignOutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await context.read<AuthProvider>().signOut();
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

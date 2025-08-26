@@ -23,6 +23,13 @@ dependencies:
   flutter_map: ^6.0.1
   latlong2: ^0.9.1
   url_launcher: ^6.2.2
+  google_sign_in: ^6.1.6
+  sign_in_with_apple: ^6.1.1
+  flutter_secure_storage: ^9.0.0
+  crypto: ^3.0.3
+  flutter_local_notifications: ^17.0.0
+  permission_handler: ^11.0.1
+  geolocator: ^12.0.0
 
 dev_dependencies:
   flutter_test:

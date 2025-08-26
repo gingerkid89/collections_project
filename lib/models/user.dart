@@ -5,6 +5,7 @@ class User {
   final String name;
   final String email;
   final String? avatarUrl;
+  final AuthProvider? authProvider;
   final DateTime createdAt;
   final DateTime lastActiveAt;
 
@@ -13,6 +14,7 @@ class User {
     required this.name,
     required this.email,
     this.avatarUrl,
+    this.authProvider,
     required this.createdAt,
     required this.lastActiveAt,
   });
@@ -24,6 +26,9 @@ class User {
       name: json['name'] as String,
       email: json['email'] as String,
       avatarUrl: json['avatarUrl'] as String?,
+      authProvider: json['authProvider'] != null 
+          ? AuthProvider.values.byName(json['authProvider'] as String)
+          : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       lastActiveAt: DateTime.parse(json['lastActiveAt'] as String),
     );
@@ -36,6 +41,7 @@ class User {
       'name': name,
       'email': email,
       'avatarUrl': avatarUrl,
+      'authProvider': authProvider?.name,
       'createdAt': createdAt.toIso8601String(),
       'lastActiveAt': lastActiveAt.toIso8601String(),
     };
@@ -47,6 +53,7 @@ class User {
     String? name,
     String? email,
     String? avatarUrl,
+    AuthProvider? authProvider,
     DateTime? createdAt,
     DateTime? lastActiveAt,
   }) {
@@ -55,6 +62,7 @@ class User {
       name: name ?? this.name,
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      authProvider: authProvider ?? this.authProvider,
       createdAt: createdAt ?? this.createdAt,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
     );
@@ -70,6 +78,38 @@ class User {
 
   @override
   String toString() {
-    return 'User{id: $id, name: $name, email: $email}';
+    return 'User{id: $id, name: $name, email: $email, authProvider: $authProvider}';
+  }
+}
+
+enum AuthProvider {
+  email,
+  google,
+  apple,
+}
+
+class AuthCredentials {
+  final String? email;
+  final String? password;
+  final String? idToken;
+  final String? accessToken;
+  final AuthProvider provider;
+
+  const AuthCredentials({
+    this.email,
+    this.password,
+    this.idToken,
+    this.accessToken,
+    required this.provider,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'password': password,
+      'idToken': idToken,
+      'accessToken': accessToken,
+      'provider': provider.name,
+    };
   }
 }
