@@ -82,7 +82,7 @@ class MyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: LocaleProvider.supportedLocales,
-            locale: localeProvider.locale, // ← Das ist wichtig!
+            locale: localeProvider.locale,
 
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

@@ -16,8 +16,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool notificationsEnabled = true;
   bool locationEnabled = true;
   bool autoMarkNearby = false;
-  bool darkMode = false;
-  String selectedTheme = 'system';
   double soundVolume = 0.8;
 
   @override
@@ -52,7 +50,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             l10n.preferences,
             [
               _buildLanguageTile(context, l10n, localeProvider),
-              _buildThemeTile(context, l10n),
               _buildNotificationTile(context, l10n),
             ],
           ),
@@ -164,17 +161,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeTile(BuildContext context, AppLocalizations l10n) {
-    return ListTile(
-      leading: const Icon(Icons.palette, color: Color(0xFF6B7280)),
-      title: Text(l10n.theme),
-      subtitle: Text(_getThemeDisplayName(l10n)),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: () {
-        _showThemeDialog(context, l10n);
-      },
-    );
-  }
 
   Widget _buildNotificationTile(BuildContext context, AppLocalizations l10n) {
     return SwitchListTile(
@@ -319,17 +305,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _getThemeDisplayName(AppLocalizations l10n) {
-    switch (selectedTheme) {
-      case 'light':
-        return l10n.lightTheme;
-      case 'dark':
-        return l10n.darkTheme;
-      case 'system':
-      default:
-        return l10n.systemTheme;
-    }
-  }
 
   void _showLanguageDialog(BuildContext context, AppLocalizations l10n, LocaleProvider localeProvider) {
     showDialog(
@@ -363,52 +338,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showThemeDialog(BuildContext context, AppLocalizations l10n) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.selectTheme),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            RadioListTile<String>(
-              title: Text(l10n.lightTheme),
-              value: 'light',
-              groupValue: selectedTheme,
-              onChanged: (value) {
-                setState(() {
-                  selectedTheme = value!;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<String>(
-              title: Text(l10n.darkTheme),
-              value: 'dark',
-              groupValue: selectedTheme,
-              onChanged: (value) {
-                setState(() {
-                  selectedTheme = value!;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            RadioListTile<String>(
-              title: Text(l10n.systemTheme),
-              value: 'system',
-              groupValue: selectedTheme,
-              onChanged: (value) {
-                setState(() {
-                  selectedTheme = value!;
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _showDataDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(

@@ -3,15 +3,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/place.dart';
 import '../models/visit.dart';
 import '../models/place_statistic.dart';
 import '../models/restaurant.dart';
 import '../models/museum.dart';
+import '../models/collection_base.dart';
+import '../models/location.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_detail_screen.dart';
+import 'collection_map_screen.dart';
 // Dynamic imports to avoid circular dependency issues
 // import 'place_detail_implementations/restaurant_detail_view.dart';
 // import 'place_detail_implementations/museum_detail_view.dart';
@@ -346,16 +350,24 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _startRoute(),
-                  child: const Text('Route'),
+                child: OutlinedButton.icon(
+                  onPressed: () => _showOnMap(),
+                  icon: const Icon(Icons.map_outlined, size: 16),
+                  label: const Text('Show on Map'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _makeReservation(),
-                  child: const Text('Reservieren'),
+                child: OutlinedButton.icon(
+                  onPressed: () => _startNavigation(),
+                  icon: const Icon(Icons.navigation, size: 16),
+                  label: const Text('Navigate'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
                 ),
               ),
             ],
@@ -974,11 +986,158 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     }
   }
 
-  void _startRoute() {
-    // TODO: Open maps
+  void _showOnMap() {
+    // Create a minimal collection just for this place to show on map
+    final place = widget.placeView.place;
+    final location = _createLocationFromPlace(place);
+    
+    if (location != null) {
+      // Create a temporary collection for this single place
+      final tempCollection = _createTempCollectionForPlace(place, location);
+      
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => CollectionMapScreen(collection: tempCollection),
+        ),
+      );
+    }
   }
 
-  void _makeReservation() {
-    // TODO: Open reservation
+  void _startNavigation() async {
+    final place = widget.placeView.place;
+    final address = place.info.address;
+    
+    if (address.isEmpty) {
+      _showErrorSnackBar('Address not available for navigation');
+      return;
+    }
+
+    try {
+      final encodedAddress = Uri.encodeComponent(address);
+      List<String> urlsToTry = [];
+      
+      if (Platform.isIOS) {
+        // Try Apple Maps first, then Google Maps as fallback
+        urlsToTry = [
+          'http://maps.apple.com/?daddr=$encodedAddress',
+          'comgooglemaps://?daddr=$encodedAddress',
+          'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+        ];
+      } else {
+        // Try Google Maps app first, then web version as fallback
+        urlsToTry = [
+          'google.navigation:q=$encodedAddress',
+          'geo:0,0?q=$encodedAddress',
+          'https://www.google.com/maps/search/?api=1&query=$encodedAddress',
+        ];
+      }
+      
+      bool launched = false;
+      for (String mapUrl in urlsToTry) {
+        try {
+          final uri = Uri.parse(mapUrl);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            launched = true;
+            break;
+          }
+        } catch (e) {
+          // Try next URL
+          continue;
+        }
+      }
+      
+      if (!launched) {
+        _showErrorSnackBar('No maps app available for navigation');
+      }
+      
+    } catch (e) {
+      _showErrorSnackBar('Could not open navigation: ${e.toString()}');
+    }
   }
+
+  Location? _createLocationFromPlace(Place place) {
+    // Try to find the original location data by matching place ID with location ID
+    // This assumes that place IDs match location IDs in the home screen data
+    
+    // Get coordinates based on known locations from the app
+    double latitude = 50.9429; // Default Cologne coordinates
+    double longitude = 6.9584;
+    
+    // Try to match with known locations for better coordinates
+    final locationCoords = _getCoordinatesForPlace(place);
+    if (locationCoords != null) {
+      latitude = locationCoords['lat']!;
+      longitude = locationCoords['lng']!;
+    }
+    
+    return Location(
+      id: place.id,
+      name: place.name,
+      address: place.info.address,
+      latitude: latitude,
+      longitude: longitude,
+      features: place.info.highlights,
+      phone: place.info.phone,
+      website: place.info.website,
+      isVisited: place.collectionStatus.isVisited,
+    );
+  }
+
+  Map<String, double>? _getCoordinatesForPlace(Place place) {
+    // Known coordinates for common places (matching home_screen.dart data)
+    final knownCoordinates = <String, Map<String, double>>{
+      'mc_1': {'lat': 50.9429, 'lng': 6.9584},
+      'mc_2': {'lat': 50.9364, 'lng': 6.9528},
+      'mc_3': {'lat': 50.9333, 'lng': 6.9472},
+      'sb_1': {'lat': 50.9351, 'lng': 6.9543},
+      'sb_2': {'lat': 50.9385, 'lng': 6.9555},
+      'sb_3': {'lat': 50.9372, 'lng': 6.9601},
+      // Add more as needed...
+    };
+    
+    return knownCoordinates[place.id];
+  }
+
+  CollectionBase _createTempCollectionForPlace(Place place, Location location) {
+    // Create a minimal collection implementation for the map view
+    return _TempCollection(
+      id: 'temp_${place.id}',
+      name: place.name,
+      iconEmoji: place.emoji,
+      description: 'Single place view',
+      createdAt: DateTime.now(),
+      locations: [location],
+      collectionType: place.type,
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+// Temporary collection class for single place map display
+class _TempCollection extends CollectionBase {
+  final String collectionType;
+
+  _TempCollection({
+    required super.id,
+    required super.name,
+    required super.iconEmoji,
+    required super.description,
+    required super.createdAt,
+    required super.locations,
+    required this.collectionType,
+  });
+
+  @override
+  Map<String, dynamic> get specificProperties => {
+    'collectionType': collectionType,
+  };
 }

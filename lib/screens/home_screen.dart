@@ -19,20 +19,50 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<CollectionBase> collections = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadDummyData();
+    _loadDummyDataAsync();
   }
 
-  void _loadDummyData() {
+  Future<void> _loadDummyDataAsync() async {
+    // Move heavy data creation to background to avoid blocking main thread
+    await Future.delayed(const Duration(milliseconds: 10)); // Allow UI to render first
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Create collections asynchronously
+    final collectionData = await _createCollectionData();
+    
+    setState(() {
+      collections = collectionData;
+      _isLoading = false;
+    });
+  }
+
+  Future<List<CollectionBase>> _createCollectionData() async {
+    // Create collections one by one with yields to allow UI updates
     final mcdonalds = CollectionFactory.createMcDonalds();
+    await Future.delayed(const Duration(milliseconds: 1));
+    
     final starbucks = CollectionFactory.createStarbucks();
+    await Future.delayed(const Duration(milliseconds: 1));
+    
     final museums = CollectionFactory.createMuseums();
+    await Future.delayed(const Duration(milliseconds: 1));
+    
     final italianRestaurants = CollectionFactory.createItalianRestaurants();
+    await Future.delayed(const Duration(milliseconds: 1));
+    
     final artMuseums = CollectionFactory.createArtMuseums();
+    await Future.delayed(const Duration(milliseconds: 1));
+    
     final scienceMuseums = CollectionFactory.createScienceMuseums();
+    await Future.delayed(const Duration(milliseconds: 1));
 
     mcdonalds.locations.addAll([
       Location(
@@ -68,6 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.1,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
+    await Future.delayed(const Duration(milliseconds: 1));
 
     starbucks.locations.addAll([
       Location(
@@ -92,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.1,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
 
     museums.locations.addAll([
       Location(
@@ -127,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
         isVisited: true,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
 
     // Italian Restaurants
     italianRestaurants.locations.addAll([
@@ -183,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.2,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
 
 
     // Art Museums
@@ -219,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.4,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
 
     // Science Museums
     scienceMuseums.locations.addAll([
@@ -254,22 +290,34 @@ class _HomeScreenState extends State<HomeScreen> {
         averageRating: 4.6,
       ),
     ]);
+    await Future.delayed(const Duration(milliseconds: 1));
 
-    setState(() {
-      collections = [
-        mcdonalds, 
-        starbucks, 
-        italianRestaurants,
-        museums,
-        artMuseums,
-        scienceMuseums,
-      ];
-    });
+    // Allow UI to breathe between heavy operations
+    await Future.delayed(const Duration(milliseconds: 5));
+    
+    return [
+      mcdonalds, 
+      starbucks, 
+      italianRestaurants,
+      museums,
+      artMuseums,
+      scienceMuseums,
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // Show loading state while data is being created
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF9FAFB),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     final totalVisited = collections.fold<int>(0, (sum, c) => sum + c.visitedCount);
     final totalLocations = collections.fold<int>(0, (sum, c) => sum + c.totalCount);
