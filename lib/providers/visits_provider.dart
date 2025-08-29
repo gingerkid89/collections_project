@@ -4,36 +4,56 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/visit.dart';
-import '../services/api_simulation.dart';
+import '../services/api_service.dart';
 
 class VisitsProvider extends ChangeNotifier {
   List<Visit> _visits = [];
+  bool _isLoading = false;
+  String? _error;
   
   List<Visit> get visits => _visits;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
   
   VisitsProvider() {
     _initializeVisits();
   }
 
   Future<void> _initializeVisits() async {
-    await _loadVisits();
-    await _loadDummyDataIfNeeded();
+    await _loadVisitsFromApi();
   }
 
-  Future<void> _loadDummyDataIfNeeded() async {
-    final apiSimulation = ApiSimulation();
-    
-    if (!(await apiSimulation.isDummyDataInitialized())) {
-      final dummyVisits = await apiSimulation.fetchPersonalVisits();
+  Future<void> _loadVisitsFromApi() async {
+    _setLoading(true);
+    try {
+      _visits = await ApiService.getVisits();
+      _clearError();
+      debugPrint('VisitsProvider: Loaded ${_visits.length} visits from API');
+    } catch (e) {
+      _setError('Failed to load visits: $e');
+      debugPrint('Error loading visits from API: $e');
+      // Fallback to local storage
+      await _loadVisitsFromLocal();
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _loadVisitsFromLocal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final visitsJson = prefs.getString('visits') ?? '[]';
+      final List<dynamic> visitsList = json.decode(visitsJson);
       
-      for (final visit in dummyVisits) {
-        _visits.add(visit);
-      }
+      _visits = visitsList
+          .map((visitData) => Visit.fromJson(visitData as Map<String, dynamic>))
+          .toList();
       
-      await _saveVisits();
+      debugPrint('VisitsProvider: Loaded ${_visits.length} visits from local storage');
       notifyListeners();
-      
-      debugPrint('VisitsProvider: Loaded ${dummyVisits.length} dummy visits');
+    } catch (e) {
+      debugPrint('Error loading visits from local storage: $e');
+      _visits = [];
     }
   }
   
@@ -45,8 +65,25 @@ class VisitsProvider extends ChangeNotifier {
   
   // Add a new visit
   Future<void> addVisit(Visit visit) async {
-    _visits.add(visit);
-    await _saveVisits();
+    _setLoading(true);
+    try {
+      // Create visit via API
+      final createdVisit = await ApiService.createVisit(visit);
+      _visits.add(createdVisit);
+      
+      // Also save locally as backup
+      await _saveVisitsToLocal();
+      _clearError();
+      debugPrint('VisitsProvider: Added new visit via API');
+    } catch (e) {
+      _setError('Failed to create visit: $e');
+      debugPrint('Error creating visit via API: $e');
+      // Fallback to local only
+      _visits.add(visit);
+      await _saveVisitsToLocal();
+    } finally {
+      _setLoading(false);
+    }
     notifyListeners();
   }
   
@@ -55,7 +92,7 @@ class VisitsProvider extends ChangeNotifier {
     final index = _visits.indexWhere((visit) => visit.id == updatedVisit.id);
     if (index != -1) {
       _visits[index] = updatedVisit;
-      await _saveVisits();
+      await _saveVisitsToLocal();
       notifyListeners();
     }
   }
@@ -63,7 +100,7 @@ class VisitsProvider extends ChangeNotifier {
   // Delete a visit
   Future<void> deleteVisit(String visitId) async {
     _visits.removeWhere((visit) => visit.id == visitId);
-    await _saveVisits();
+    await _saveVisitsToLocal();
     notifyListeners();
   }
   
@@ -93,55 +130,50 @@ class VisitsProvider extends ChangeNotifier {
     return totalRating / ratedVisits.length;
   }
   
-  // Load visits from SharedPreferences
-  Future<void> _loadVisits() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final visitsJson = prefs.getString('visits') ?? '[]';
-      final List<dynamic> visitsList = json.decode(visitsJson);
-      
-      _visits = visitsList
-          .map((visitData) => Visit.fromJson(visitData as Map<String, dynamic>))
-          .toList();
-      
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Error loading visits: $e');
-      _visits = [];
-    }
+  // Refresh visits from API
+  Future<void> refreshVisits() async {
+    await _loadVisitsFromApi();
   }
   
-  // Save visits to SharedPreferences
-  Future<void> _saveVisits() async {
+  // Save visits to local storage (backup)
+  Future<void> _saveVisitsToLocal() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final visitsJson = json.encode(_visits.map((visit) => visit.toJson()).toList());
       await prefs.setString('visits', visitsJson);
     } catch (e) {
-      debugPrint('Error saving visits: $e');
+      debugPrint('Error saving visits to local storage: $e');
     }
   }
   
   // Clear all visits (for testing/reset)
   Future<void> clearAllVisits() async {
     _visits.clear();
-    await _saveVisits();
+    await _saveVisitsToLocal();
     notifyListeners();
   }
   
-  // Reset dummy data and reload (for development)
-  Future<void> resetAndReloadDummyData() async {
-    final apiSimulation = ApiSimulation();
-    
-    // Clear existing data
-    _visits.clear();
-    await _saveVisits();
-    
-    // Reset dummy data flag
-    await apiSimulation.resetDummyData();
-    
-    // Reload dummy data
-    await _loadDummyDataIfNeeded();
+  // Retry loading data after error
+  Future<void> retry() async {
+    _clearError();
+    await _loadVisitsFromApi();
+  }
+  
+  // Helper methods for loading state management
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+  
+  void _setError(String error) {
+    _error = error;
+    _isLoading = false;
+    notifyListeners();
+  }
+  
+  void _clearError() {
+    _error = null;
+    notifyListeners();
   }
   
   // User ownership and permission methods

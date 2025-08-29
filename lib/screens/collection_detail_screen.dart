@@ -10,6 +10,7 @@ import '../models/place.dart';
 import '../models/menu_item.dart';
 import '../models/visit.dart';
 import '../providers/visits_provider.dart';
+import '../providers/collections_provider.dart';
 import 'place_detail_factory.dart';
 
 
@@ -28,67 +29,91 @@ class CollectionDetailScreen extends StatefulWidget {
 class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   String searchTerm = '';
   String filterMode = 'all';
+  List<Place> _places = [];
+  bool _isLoading = true;
+  String? _error;
 
-  List<Location> get filteredLocations {
-    var locations = widget.collection.locations.where((location) {
-      final matchesSearch = location.name.toLowerCase().contains(searchTerm.toLowerCase()) ||
-          location.address.toLowerCase().contains(searchTerm.toLowerCase());
+  @override
+  void initState() {
+    super.initState();
+    _loadCollectionPlaces();
+  }
+
+  Future<void> _loadCollectionPlaces() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final collectionsProvider = Provider.of<CollectionsProvider>(context, listen: false);
+      final places = await collectionsProvider.getCollectionPlaces(widget.collection.id);
+      
+      setState(() {
+        _places = places;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Place> get filteredPlaces {
+    var places = _places.where((place) {
+      final matchesSearch = place.name.toLowerCase().contains(searchTerm.toLowerCase()) ||
+          place.info.address.toLowerCase().contains(searchTerm.toLowerCase());
 
       switch (filterMode) {
         case 'visited':
-          return location.isVisited && matchesSearch;
+          return place.collectionStatus.isVisited && matchesSearch;
         case 'unvisited':
-          return !location.isVisited && matchesSearch;
+          return !place.collectionStatus.isVisited && matchesSearch;
         default:
           return matchesSearch;
       }
     }).toList();
 
-    return locations;
+    return places;
   }
 
-  void _navigateToLocationDetail(BuildContext context, Location location) async {
-    // Convert Location to appropriate Place type based on collection
-    final place = _convertLocationToPlace(location);
+  void _navigateToPlaceDetail(BuildContext context, Place place) async {
+    final detailView = PlaceDetailFactory.createDetailView(place);
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => detailView),
+    );
     
-    if (place != null) {
-      final detailView = PlaceDetailFactory.createDetailView(place);
-      final result = await Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => detailView),
-      );
+    // If a visit was created and returned, save it and reload places to update status
+    if (result != null && result is Visit && mounted) {
+      final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+      await visitsProvider.addVisit(result);
       
-      // If a visit was created and returned, save it and mark location as visited
-      if (result != null && result is Visit && mounted) {
-        final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
-        await visitsProvider.addVisit(result);
-        
-        setState(() {
-          // Use the actual rating from the visit instead of hardcoded 5
-          location.markAsVisited(rating: result.overallRating?.toInt() ?? 5);
-        });
-        
-        if (mounted) {
-          final l10n = AppLocalizations.of(context)!;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.visitSavedAt(location.name)),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
+      // Reload the collection places to get updated visit status
+      await _loadCollectionPlaces();
+      
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.visitSavedAt(place.name)),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Detail view not available for ${location.name}'),
-          backgroundColor: Colors.orange,
-        ),
-      );
     }
   }
 
   Place? _convertLocationToPlace(Location location) {
-    // Create a Place object from Location based on collection type
+    // For database collections, we need to load the actual Place object
+    if (widget.collection.collectionType == 'database') {
+      // This will need to be loaded from the collection places
+      // For now, return null and let the fallback logic handle it
+      return null;
+    }
+    
+    // Fallback to creating Place object from Location (for legacy collections)
     final collectionType = widget.collection.collectionType;
     
     switch (collectionType) {
@@ -811,9 +836,9 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final visitedCount = widget.collection.visitedCount;
-    final totalCount = widget.collection.totalCount;
-    final progressPercentage = widget.collection.progressPercentage;
+    final visitedCount = _places.where((p) => p.collectionStatus.isVisited).length;
+    final totalCount = _places.length;
+    final progressPercentage = totalCount > 0 ? (visitedCount / totalCount) * 100 : 0.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -932,10 +957,32 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
               ),
             ),
 
-            // Grid
+            // Content Area
             Expanded(
-              child: filteredLocations.isEmpty
-                  ? Center(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error loading places:\n$_error',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 16, color: Colors.red),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _loadCollectionPlaces,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : filteredPlaces.isEmpty
+                          ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -966,13 +1013,13 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
-                  itemCount: filteredLocations.length,
+                  itemCount: filteredPlaces.length,
                   itemBuilder: (context, index) {
-                    final location = filteredLocations[index];
-                    return LocationTile(
-                      location: location,
-                      onTap: () => _navigateToLocationDetail(context, location),
-                      onMarkVisited: null, // Disable manual marking - only through visit creation
+                    final place = filteredPlaces[index];
+                    
+                    return PlaceTile(
+                      place: place,
+                      onTap: () => _navigateToPlaceDetail(context, place),
                     );
                   },
                 ),
@@ -989,13 +1036,26 @@ class LocationTile extends StatelessWidget {
   final Location location;
   final VoidCallback onTap;
   final VoidCallback? onMarkVisited;
+  final String? placeType;
 
   const LocationTile({
     super.key,
     required this.location,
     required this.onTap,
     this.onMarkVisited,
+    this.placeType,
   });
+
+  IconData get _placeholderIcon {
+    switch (placeType?.toLowerCase()) {
+      case 'museum':
+        return Icons.account_balance;
+      case 'restaurant':
+        return Icons.restaurant;
+      default:
+        return Icons.place;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1031,14 +1091,14 @@ class LocationTile extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.restaurant, size: 32),
+                      child: Icon(_placeholderIcon, size: 32),
                     );
                   },
                 ),
               )
                   : Container(
                 color: Colors.grey[300],
-                child: const Icon(Icons.restaurant, size: 32),
+                child: Icon(_placeholderIcon, size: 32),
               ),
 
               // Gradient Overlay
@@ -1131,6 +1191,144 @@ class LocationTile extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// PlaceTile widget for displaying places in the grid
+class PlaceTile extends StatelessWidget {
+  final Place place;
+  final VoidCallback onTap;
+
+  const PlaceTile({
+    super.key,
+    required this.place,
+    required this.onTap,
+  });
+
+  IconData get _placeholderIcon {
+    switch (place.type.toLowerCase()) {
+      case 'museum':
+        return Icons.museum;
+      case 'restaurant':
+        return Icons.restaurant;
+      default:
+        return Icons.place;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Image or Placeholder
+              place.imageUrl != null
+                  ? ColorFiltered(
+                      colorFilter: place.collectionStatus.isVisited
+                          ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                          : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+                      child: Image.network(
+                        place.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: Icon(
+                              _placeholderIcon,
+                              size: 40,
+                              color: Colors.grey[600],
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: Icon(
+                        _placeholderIcon,
+                        size: 40,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+              
+              // Overlay with place info
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Content
+              Positioned(
+                bottom: 8,
+                left: 8,
+                right: 8,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      place.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (place.collectionStatus.visitCount > 0)
+                      Text(
+                        '${place.collectionStatus.visitCount}x visited',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              
+              // Visit status indicator
+              if (place.collectionStatus.isVisited)
+                const Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 20,
                   ),
                 ),
             ],

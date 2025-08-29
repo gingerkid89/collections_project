@@ -7,7 +7,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../models/place.dart';
 import '../models/location.dart';
 import '../models/visit.dart';
-import '../services/api_simulation.dart';
 
 class MonitoredPlace {
   final Place place;
@@ -28,7 +27,9 @@ class MockPlace implements Place {
   final String id;
   @override
   final String name;
+  @override
   final double latitude;
+  @override
   final double longitude;
   
   MockPlace({
@@ -54,7 +55,10 @@ class MockPlace implements Place {
   List<Visit> get visits => [];
   
   @override
-  PlaceInfo get info => PlaceInfo(address: '$latitude, $longitude');
+  String? get imageUrl => null;
+  
+  @override
+  PlaceInfo get info => PlaceInfo(address: '${this.latitude}, ${this.longitude}');
   
   @override
   Map<String, dynamic> get specialData => {};
@@ -77,12 +81,15 @@ class MockPlace implements Place {
     PlaceCollectionStatus? collectionStatus,
     List<Visit>? visits,
     PlaceInfo? info,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
   }) {
     return MockPlace(
       id: id ?? this.id,
       name: name ?? this.name,
-      latitude: latitude,
-      longitude: longitude,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

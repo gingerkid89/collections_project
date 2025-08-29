@@ -174,21 +174,48 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     return Container(
       height: 180,
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade400, Colors.blue.shade600],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
       child: Stack(
+        fit: StackFit.expand,
         children: [
-          Center(
-            child: Text(
-              place.emoji,
-              style: const TextStyle(fontSize: 48),
-            ),
-          ),
+          // Background Image or Gradient
+          place.imageUrl != null
+              ? Image.network(
+                  place.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback to gradient background with emoji if image fails
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade400, Colors.blue.shade600],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          place.emoji,
+                          style: const TextStyle(fontSize: 48),
+                        ),
+                      ),
+                    );
+                  },
+                )
+              : Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      place.emoji,
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                  ),
+                ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -296,24 +323,31 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+    return Flexible(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

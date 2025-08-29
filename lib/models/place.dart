@@ -11,6 +11,9 @@ abstract class Place {
   String get name;
   String get type; // "Restaurant", "Museum", "Park"
   String get emoji;
+  String? get imageUrl;
+  double? get latitude;
+  double? get longitude;
   PlaceCollectionStatus get collectionStatus;
   List<Visit> get visits;
   PlaceInfo get info;
@@ -25,6 +28,9 @@ abstract class Place {
     String? name,
     String? type,
     String? emoji,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
     PlaceCollectionStatus? collectionStatus,
     List<Visit>? visits,
     PlaceInfo? info,
@@ -32,44 +38,8 @@ abstract class Place {
 }
 
 // ================================
-// PLACE FACTORY
+// PLACE FACTORY (moved to lib/factories/place_factory.dart)
 // ================================
-
-class PlaceFactory {
-  static Place fromJson(Map<String, dynamic> json) {
-    final type = json['type'] as String;
-
-    switch (type.toLowerCase()) {
-      case 'restaurant':
-        // Dynamic import to avoid circular dependency
-        final Map<String, dynamic> specialData = json['specialData'] ?? {};
-        return _createRestaurantFromJson(json, specialData);
-      case 'museum':
-        // Dynamic import to avoid circular dependency  
-        final Map<String, dynamic> specialData = json['specialData'] ?? {};
-        return _createMuseumFromJson(json, specialData);
-      default:
-        throw UnsupportedError('Place type "$type" not supported');
-    }
-  }
-
-  static List<String> get supportedTypes => [
-    'restaurant',
-    'museum',
-    // 'park',
-  ];
-
-  // Helper methods to create specific place types
-  static Place _createRestaurantFromJson(Map<String, dynamic> json, Map<String, dynamic> specialData) {
-    // Import restaurant module dynamically
-    throw UnimplementedError('Use Restaurant.fromJson() directly instead');
-  }
-
-  static Place _createMuseumFromJson(Map<String, dynamic> json, Map<String, dynamic> specialData) {
-    // Import museum module dynamically
-    throw UnimplementedError('Use Museum.fromJson() directly instead');
-  }
-}
 
 // ================================
 // COLLECTABLE ITEM INTERFACE

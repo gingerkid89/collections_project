@@ -35,7 +35,14 @@ class AuthProvider with ChangeNotifier {
         _user = user;
         _setState(AuthState.authenticated);
       } else {
-        _setState(AuthState.unauthenticated);
+        // Auto-login for testing purposes
+        final testUser = await _authService.signInWithEmail('user@web.com', '123456');
+        if (testUser != null) {
+          _user = testUser;
+          _setState(AuthState.authenticated);
+        } else {
+          _setState(AuthState.unauthenticated);
+        }
       }
     } catch (e) {
       _setError('Failed to initialize authentication: ${e.toString()}');

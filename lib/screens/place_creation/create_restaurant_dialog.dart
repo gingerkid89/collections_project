@@ -7,10 +7,13 @@ import '../../models/place.dart';
 import '../../models/collection_base.dart';
 import '../../models/restaurant.dart';
 import '../../models/location.dart';
+import '../../models/menu_item.dart';
 import '../../providers/collections_provider.dart';
+import '../../providers/places_provider.dart';
 import 'widgets/photo_upload_section.dart';
 import 'widgets/address_picker_field.dart';
 import 'widgets/opening_hours_picker.dart';
+import 'widgets/chip_input_field.dart';
 import '../../services/geocoding_service.dart';
 
 class CreateRestaurantDialog extends StatefulWidget {
@@ -30,6 +33,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
   final _addressController = TextEditingController();
   final _phoneController = TextEditingController();
   final _websiteController = TextEditingController();
+  final _emailController = TextEditingController();
   
   // Form Data
   List<String> _photos = [];
@@ -43,10 +47,32 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
   String? _selectedCollectionId;
   List<CollectionBase> _availableCollections = [];
   AddressResult? _validatedAddress;
+  List<String> _highlights = [];
+  List<MenuItem> _menuItems = [];
+  
+  // Menu item creation controllers
+  final _menuItemNameController = TextEditingController();
+  final _menuItemDescriptionController = TextEditingController();
+  final _menuItemPriceController = TextEditingController();
+  String _menuItemCategory = 'Main Dishes';
+  List<String> _menuItemAllergens = [];
+  bool _isVegetarian = false;
+  bool _isVegan = false;
+  bool _isGlutenFree = false;
 
   final List<String> _cuisineTypes = [
     'Italian', 'Asian', 'Fast Food', 'German', 'French', 'Mexican',
     'Indian', 'Greek', 'American', 'Mediterranean', 'Japanese', 'Other'
+  ];
+  
+  final List<String> _menuCategories = [
+    'Main Dishes', 'Appetizers', 'Soups', 'Salads', 'Pizza', 'Pasta', 
+    'Burgers', 'Sides', 'Desserts', 'Beverages', 'Coffee', 'Wine', 'Beer'
+  ];
+  
+  final List<String> _commonAllergens = [
+    'Gluten', 'Milk', 'Eggs', 'Fish', 'Shellfish', 'Tree Nuts', 
+    'Peanuts', 'Soy', 'Sesame', 'Celery', 'Mustard', 'Sulphites'
   ];
 
   @override
@@ -61,7 +87,11 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
     _addressController.dispose();
     _phoneController.dispose();
     _websiteController.dispose();
+    _emailController.dispose();
     _pageController.dispose();
+    _menuItemNameController.dispose();
+    _menuItemDescriptionController.dispose();
+    _menuItemPriceController.dispose();
     super.dispose();
   }
 
@@ -90,7 +120,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                 ),
               ),
               Text(
-                'Step ${_currentPage + 1} of 3',
+                'Step ${_currentPage + 1} of 4',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF6B7280),
@@ -113,11 +143,11 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
-                children: List.generate(3, (index) {
+                children: List.generate(4, (index) {
                   return Expanded(
                     child: Container(
                       height: 4,
-                      margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+                      margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
                       decoration: BoxDecoration(
                         color: index <= _currentPage 
                           ? const Color(0xFFEF4444) 
@@ -142,6 +172,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                     _buildBasicInfoPage(),
                     _buildRestaurantDetailsPage(),
                     _buildContactInfoPage(),
+                    _buildMenuPage(),
                   ],
                 ),
               ),
@@ -169,7 +200,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _currentPage == 2 ? _createRestaurant : _nextPage,
+                      onPressed: _currentPage == 3 ? _createRestaurant : _nextPage,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEF4444),
                         foregroundColor: Colors.white,
@@ -178,7 +209,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Text(_currentPage == 2 ? 'Create Restaurant' : 'Next'),
+                      child: Text(_currentPage == 3 ? 'Create Restaurant' : 'Next'),
                     ),
                   ),
                 ],
@@ -399,6 +430,33 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
           _buildServiceToggle('Takeout', _hasTakeout, (value) {
             setState(() => _hasTakeout = value);
           }),
+          const SizedBox(height: 24),
+
+          // Restaurant Highlights
+          const Text(
+            'Restaurant Highlights',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Add special features or highlights (e.g., "Outdoor Seating", "Live Music")',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ChipInputField(
+            chips: _highlights,
+            onChipsChanged: (highlights) {
+              setState(() => _highlights = highlights);
+            },
+            hintText: 'Add highlight and press Enter',
+          ),
         ],
       ),
     );
@@ -443,6 +501,15 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
             label: 'Website',
             hint: 'e.g., www.restaurant.com',
             keyboardType: TextInputType.url,
+          ),
+          const SizedBox(height: 20),
+
+          // Email
+          _buildTextField(
+            controller: _emailController,
+            label: 'Email',
+            hint: 'e.g., info@restaurant.com',
+            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: 24),
 
@@ -549,7 +616,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
   }
 
   void _nextPage() {
-    if (_currentPage < 2) {
+    if (_currentPage < 3) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -566,10 +633,447 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
     }
   }
 
+  Widget _buildMenuPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Restaurant Menu',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Add dishes to your restaurant menu (optional but recommended)',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Add Menu Item Section
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Add New Menu Item',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Item Name
+                _buildTextField(
+                  controller: _menuItemNameController,
+                  label: 'Dish Name *',
+                  hint: 'e.g., Margherita Pizza',
+                  validator: (value) => value?.isEmpty == true ? 'Name is required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Item Description
+                _buildTextField(
+                  controller: _menuItemDescriptionController,
+                  label: 'Description',
+                  hint: 'Brief description of the dish...',
+                ),
+                const SizedBox(height: 16),
+
+                // Price and Category Row
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: _buildTextField(
+                        controller: _menuItemPriceController,
+                        label: 'Price (€) *',
+                        hint: '12.50',
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        validator: (value) {
+                          if (value?.isEmpty == true) return 'Price is required';
+                          if (double.tryParse(value!) == null) return 'Invalid price';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Category',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<String>(
+                            value: _menuItemCategory,
+                            decoration: _inputDecoration('Select category'),
+                            items: _menuCategories.map((category) {
+                              return DropdownMenuItem(
+                                value: category,
+                                child: Text(category),
+                              );
+                            }).toList(),
+                            onChanged: (value) => setState(() => _menuItemCategory = value!),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Dietary Information
+                const Text(
+                  'Dietary Information',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCheckboxTile('Vegetarian', _isVegetarian, (value) {
+                        setState(() {
+                          _isVegetarian = value;
+                          if (!value) _isVegan = false; // Vegan implies vegetarian
+                        });
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildCheckboxTile('Vegan', _isVegan, (value) {
+                        setState(() {
+                          _isVegan = value;
+                          if (value) _isVegetarian = true; // Vegan implies vegetarian
+                        });
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildCheckboxTile('Gluten-Free', _isGlutenFree, (value) {
+                        setState(() => _isGlutenFree = value);
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Allergens
+                const Text(
+                  'Allergens',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Select all allergens present in this dish',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _commonAllergens.map((allergen) {
+                    final isSelected = _menuItemAllergens.contains(allergen);
+                    return FilterChip(
+                      label: Text(allergen),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _menuItemAllergens.add(allergen);
+                          } else {
+                            _menuItemAllergens.remove(allergen);
+                          }
+                        });
+                      },
+                      selectedColor: const Color(0xFFEF4444).withOpacity(0.2),
+                      checkmarkColor: const Color(0xFFEF4444),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+
+                // Add Item Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _addMenuItem,
+                    icon: const Icon(Icons.add, size: 20),
+                    label: const Text('Add to Menu'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          if (_menuItems.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Text(
+              'Current Menu Items',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...(_menuItems.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              return _buildMenuItemCard(item, index);
+            }).toList()),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckboxTile(String title, bool value, ValueChanged<bool> onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Checkbox(
+            value: value,
+            onChanged: (newValue) => onChanged(newValue ?? false),
+            activeColor: const Color(0xFFEF4444),
+          ),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF111827),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuItemCard(MenuItem item, int index) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Category: ${item.category}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    item.formattedPrice,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFEF4444),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => _removeMenuItem(index),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (item.description.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              item.description,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF6B7280),
+              ),
+            ),
+          ],
+          if (item.hasDietaryRestrictions || item.allergens.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                ...item.dietaryLabels.map((label) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                )),
+                ...item.allergens.map((allergen) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    allergen,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                )),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  void _addMenuItem() {
+    if (_menuItemNameController.text.trim().isEmpty || 
+        _menuItemPriceController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter name and price'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final price = double.tryParse(_menuItemPriceController.text.trim());
+    if (price == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid price'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final menuItem = MenuItem(
+      id: 'item_${DateTime.now().millisecondsSinceEpoch}',
+      name: _menuItemNameController.text.trim(),
+      description: _menuItemDescriptionController.text.trim(),
+      price: price,
+      category: _menuItemCategory,
+      allergens: List<String>.from(_menuItemAllergens),
+      isVegetarian: _isVegetarian,
+      isVegan: _isVegan,
+      isGlutenFree: _isGlutenFree,
+    );
+
+    setState(() {
+      _menuItems.add(menuItem);
+      // Clear form
+      _menuItemNameController.clear();
+      _menuItemDescriptionController.clear();
+      _menuItemPriceController.clear();
+      _menuItemCategory = 'Main Dishes';
+      _menuItemAllergens.clear();
+      _isVegetarian = false;
+      _isVegan = false;
+      _isGlutenFree = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Menu item added successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _removeMenuItem(int index) {
+    setState(() {
+      _menuItems.removeAt(index);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Menu item removed'),
+      ),
+    );
+  }
+
   Widget _buildCollectionSelector() {
     return Consumer<CollectionsProvider>(
       builder: (context, collectionsProvider, child) {
-        final availableCollections = collectionsProvider.getRestaurantCompatibleCollections();
+        final availableCollections = collectionsProvider.collections;
         
         return Container(
           decoration: BoxDecoration(
@@ -580,25 +1084,20 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
           child: DropdownButtonFormField<String>(
             value: _selectedCollectionId,
             hint: const Text(
-              'Select a collection (optional)',
+              'Select a collection (required)',
               style: TextStyle(color: Color(0xFF9CA3AF)),
             ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select a collection';
+              }
+              return null;
+            },
             decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            items: [
-              const DropdownMenuItem<String>(
-                value: null,
-                child: Text(
-                  'No collection (standalone place)',
-                  style: TextStyle(
-                    color: Color(0xFF6B7280),
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-              ...availableCollections.map((collection) {
+            items: availableCollections.map((collection) {
                 return DropdownMenuItem<String>(
                   value: collection.id,
                   child: Row(
@@ -631,7 +1130,6 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                   ),
                 );
               }).toList(),
-            ],
             onChanged: (value) {
               setState(() => _selectedCollectionId = value);
             },
@@ -671,42 +1169,40 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
         ),
       );
 
-      // Create the restaurant
-      final restaurant = Restaurant(
-        id: 'restaurant_${DateTime.now().millisecondsSinceEpoch}',
+      // Create the restaurant using PlacesProvider
+      final placesProvider = context.read<PlacesProvider>();
+      
+      final restaurant = await placesProvider.createRestaurant(
         name: _nameController.text,
+        address: _addressController.text,
         cuisine: _cuisine,
         priceCategory: _priceCategory,
-        menu: [], // Empty menu for now - can be added later
-        collectionStatus: PlaceCollectionStatus.notVisited(),
-        visits: [],
-        info: PlaceInfo(
-          address: _addressController.text,
-          phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-          website: _websiteController.text.isNotEmpty ? _websiteController.text : null,
-          openingHours: _openingHours,
-          highlights: [],
-        ),
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        website: _websiteController.text.isNotEmpty ? _websiteController.text : null,
+        email: _emailController.text.isNotEmpty ? _emailController.text : null,
+        openingHours: _openingHours,
+        highlights: List<String>.from(_highlights),
+        latitude: _validatedAddress?.latitude,
+        longitude: _validatedAddress?.longitude,
+        imageUrl: _primaryPhoto,
         hasReservation: _hasReservation,
         hasDelivery: _hasDelivery,
         hasTakeout: _hasTakeout,
+        menuItems: List<MenuItem>.from(_menuItems),
       );
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Add to collection if selected
+      // Add to collection (now required)
       if (_selectedCollectionId != null && mounted) {
         final collectionsProvider = context.read<CollectionsProvider>();
         
-        // Create a location from the restaurant
+        // Create a location from the created restaurant
         final location = Location(
           id: restaurant.id,
           name: restaurant.name,
           address: restaurant.info.address,
-          latitude: _validatedAddress?.latitude ?? 50.9364, // Use validated coordinates or fallback
-          longitude: _validatedAddress?.longitude ?? 6.9528,
-          imageUrls: _photos,
+          latitude: restaurant.latitude ?? 50.9364,
+          longitude: restaurant.longitude ?? 6.9528,
+          imageUrls: restaurant.imageUrl != null ? [restaurant.imageUrl!] : _photos,
           features: [
             restaurant.cuisine,
             restaurant.priceCategory,
@@ -735,9 +1231,7 @@ class _CreateRestaurantDialogState extends State<CreateRestaurantDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _selectedCollectionId != null
-                      ? 'Restaurant created and added to collection!'
-                      : 'Restaurant created successfully!',
+                    'Restaurant created and added to collection!',
                   ),
                 ),
               ],

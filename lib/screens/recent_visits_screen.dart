@@ -7,7 +7,6 @@ import '../l10n/app_localizations.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
 import '../models/visit.dart';
-import '../services/api_simulation.dart';
 import 'visit_detail_screen.dart';
 
 class RecentVisitsScreen extends StatelessWidget {

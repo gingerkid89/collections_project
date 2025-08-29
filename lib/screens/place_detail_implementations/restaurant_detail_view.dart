@@ -417,14 +417,44 @@ class RestaurantDetailView extends PlaceDetailViewInterface {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '$label: ',
             style: const TextStyle(fontWeight: FontWeight.w500),
           ),
-          Text(value),
+          Expanded(
+            child: _buildAdaptiveText(value),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdaptiveText(String text) {
+    // Determine font size and max lines based on text length
+    double fontSize;
+    int maxLines;
+    
+    if (text.length > 25) {
+      // Very long text: smaller font, up to 3 lines
+      fontSize = 12;
+      maxLines = 3;
+    } else if (text.length > 15) {
+      // Long text: slightly smaller font, up to 2 lines
+      fontSize = 13;
+      maxLines = 2;
+    } else {
+      // Short text: normal font, single line
+      fontSize = 14;
+      maxLines = 1;
+    }
+    
+    return Text(
+      text,
+      style: TextStyle(fontSize: fontSize),
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
     );
   }
 

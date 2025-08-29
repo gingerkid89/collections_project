@@ -38,11 +38,11 @@ class MockAuthService implements AuthService {
     }
     
     // Test credentials for easy login
-    if (email == 'user@mail.com' && password == '123456') {
+    if ((email == 'user@mail.com' || email == 'user@web.com') && password == '123456') {
       final user = User(
         id: 'test_user_001',
         name: 'Test User',
-        email: 'user@mail.com',
+        email: email,
         authProvider: AuthProvider.email,
         createdAt: DateTime.now(),
         lastActiveAt: DateTime.now(),

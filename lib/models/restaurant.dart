@@ -14,6 +14,12 @@ class Restaurant implements Place {
   @override
   final String emoji;
   @override
+  final String? imageUrl;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
   final PlaceCollectionStatus collectionStatus;
   @override
   final List<Visit> visits;
@@ -36,6 +42,9 @@ class Restaurant implements Place {
     required this.collectionStatus,
     required this.visits,
     required this.info,
+    this.imageUrl,
+    this.latitude,
+    this.longitude,
     this.hasReservation = false,
     this.hasDelivery = false,
     this.hasTakeout = false,
@@ -58,6 +67,7 @@ class Restaurant implements Place {
       'name': name,
       'type': type,
       'emoji': emoji,
+      'imageUrl': imageUrl,
       'collectionStatus': collectionStatus.toJson(),
       'visits': visits.map((visit) => visit.toJson()).toList(),
       'info': info.toJson(),
@@ -75,6 +85,7 @@ class Restaurant implements Place {
       menu: (specialData['menu'] as List<dynamic>?)
           ?.map((item) => MenuItem.fromJson(item as Map<String, dynamic>))
           .toList() ?? [],
+      imageUrl: json['imageUrl'],
       collectionStatus: PlaceCollectionStatus.fromJson(json['collectionStatus']),
       visits: (json['visits'] as List<dynamic>?)
           ?.map((visit) => Visit.fromJson(visit as Map<String, dynamic>))
@@ -92,6 +103,9 @@ class Restaurant implements Place {
     String? name,
     String? type,
     String? emoji,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
     PlaceCollectionStatus? collectionStatus,
     List<Visit>? visits,
     PlaceInfo? info,
@@ -102,6 +116,9 @@ class Restaurant implements Place {
       cuisine: cuisine,
       priceCategory: priceCategory,
       menu: menu,
+      imageUrl: imageUrl ?? this.imageUrl,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       collectionStatus: collectionStatus ?? this.collectionStatus,
       visits: visits ?? this.visits,
       info: info ?? this.info,

@@ -1,12 +1,14 @@
 // lib/screens/place_creation/create_museum_dialog.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/place.dart';
 import '../../models/collection_base.dart';
 import '../../models/museum.dart';
-import '../../models/collection_factory.dart';
 import '../../models/location.dart';
+import '../../providers/places_provider.dart';
+import '../../providers/collections_provider.dart';
 import 'widgets/photo_upload_section.dart';
 import 'widgets/address_picker_field.dart';
 import 'widgets/opening_hours_picker.dart';
@@ -58,12 +60,8 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
   }
 
   void _loadAvailableCollections() {
-    // Load museum-compatible collections
-    _availableCollections = [
-      CollectionFactory.createMuseums(),
-      CollectionFactory.createArtMuseums(),
-      CollectionFactory.createScienceMuseums(),
-    ];
+    // Museum-compatible collections will be loaded dynamically from CollectionsProvider
+    // This method is no longer needed since we use Consumer<CollectionsProvider> in the UI
   }
 
   @override
@@ -598,7 +596,11 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
   }
 
   Widget _buildCollectionSelector() {
-    return Container(
+    return Consumer<CollectionsProvider>(
+      builder: (context, collectionsProvider, child) {
+        final availableCollections = collectionsProvider.collections;
+        
+        return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -607,25 +609,20 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
       child: DropdownButtonFormField<String>(
         value: _selectedCollectionId,
         hint: const Text(
-          'Select a collection (optional)',
+          'Select a collection (required)',
           style: TextStyle(color: Color(0xFF9CA3AF)),
         ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please select a collection';
+          }
+          return null;
+        },
         decoration: const InputDecoration(
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-        items: [
-          const DropdownMenuItem<String>(
-            value: null,
-            child: Text(
-              'No collection (standalone place)',
-              style: TextStyle(
-                color: Color(0xFF6B7280),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          ..._availableCollections.where((collection) => collection.name.toLowerCase().contains('museum')).map((collection) {
+        items: availableCollections.map((collection) {
             return DropdownMenuItem<String>(
               value: collection.id,
               child: Row(
@@ -655,11 +652,12 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
               ),
             );
           }).toList(),
-        ],
         onChanged: (value) {
           setState(() => _selectedCollectionId = value);
         },
       ),
+    );
+      },
     );
   }
 
@@ -691,45 +689,39 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
         ),
       );
 
-      // Create the museum
-      final museum = Museum(
-        id: 'museum_${DateTime.now().millisecondsSinceEpoch}',
+      // Create the museum using PlacesProvider
+      final placesProvider = context.read<PlacesProvider>();
+      
+      final museum = await placesProvider.createMuseum(
         name: _nameController.text,
+        address: _addressController.text,
         category: _category,
+        ticketPrice: _ticketPriceController.text.isNotEmpty ? _ticketPriceController.text : 'Free',
         currentExhibitions: _currentExhibitions,
         permanentCollections: _permanentCollections,
-        ticketPrice: _ticketPriceController.text,
-        collectionStatus: PlaceCollectionStatus.notVisited(),
-        visits: [],
-        info: PlaceInfo(
-          address: _addressController.text,
-          phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
-          website: _websiteController.text.isNotEmpty ? _websiteController.text : null,
-          openingHours: _openingHours,
-          highlights: [],
-        ),
+        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        website: _websiteController.text.isNotEmpty ? _websiteController.text : null,
+        openingHours: _openingHours,
+        latitude: _validatedAddress?.latitude,
+        longitude: _validatedAddress?.longitude,
+        imageUrl: _primaryPhoto,
         hasAudioGuide: _hasAudioGuide,
         hasGiftShop: _hasGiftShop,
         isWheelchairAccessible: _isWheelchairAccessible,
       );
 
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Add to collection if selected
-      if (_selectedCollectionId != null) {
-        final selectedCollection = _availableCollections.firstWhere(
-          (c) => c.id == _selectedCollectionId,
-        );
+      // Add to collection (now required)
+      if (_selectedCollectionId != null && mounted) {
+        final collectionsProvider = context.read<CollectionsProvider>();
         
-        // Create a location from the museum
+        // Create a location from the created museum
         final location = Location(
           id: museum.id,
           name: museum.name,
           address: museum.info.address,
-          latitude: _validatedAddress?.latitude ?? 50.9406, // Use validated coordinates or fallback
-          longitude: _validatedAddress?.longitude ?? 6.9623,
-          imageUrls: _photos,
+          latitude: museum.latitude ?? 50.9406,
+          longitude: museum.longitude ?? 6.9623,
+          imageUrls: museum.imageUrl != null ? [museum.imageUrl!] : _photos,
           features: [
             museum.category,
             museum.ticketPrice,
@@ -741,8 +733,8 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
           isVisited: false,
         );
         
-        // Add to collection (in real app, this would be an API call)
-        selectedCollection.locations.add(location);
+        // Add to collection using provider
+        collectionsProvider.addLocationToCollection(_selectedCollectionId!, location);
       }
 
       // Close loading dialog
@@ -758,9 +750,7 @@ class _CreateMuseumDialogState extends State<CreateMuseumDialog> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _selectedCollectionId != null
-                      ? 'Museum created and added to collection!'
-                      : 'Museum created successfully!',
+                    'Museum created and added to collection!',
                   ),
                 ),
               ],

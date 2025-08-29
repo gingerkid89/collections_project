@@ -13,6 +13,12 @@ class Museum implements Place {
   @override
   final String emoji;
   @override
+  final String? imageUrl;
+  @override
+  final double? latitude;
+  @override
+  final double? longitude;
+  @override
   final PlaceCollectionStatus collectionStatus;
   @override
   final List<Visit> visits;
@@ -37,6 +43,9 @@ class Museum implements Place {
     required this.collectionStatus,
     required this.visits,
     required this.info,
+    this.imageUrl,
+    this.latitude,
+    this.longitude,
     this.hasAudioGuide = false,
     this.hasGiftShop = false,
     this.isWheelchairAccessible = false,
@@ -60,6 +69,7 @@ class Museum implements Place {
       'name': name,
       'type': type,
       'emoji': emoji,
+      'imageUrl': imageUrl,
       'collectionStatus': collectionStatus.toJson(),
       'visits': visits.map((visit) => visit.toJson()).toList(),
       'info': info.toJson(),
@@ -76,6 +86,7 @@ class Museum implements Place {
       currentExhibitions: List<String>.from(specialData['currentExhibitions'] ?? []),
       permanentCollections: List<String>.from(specialData['permanentCollections'] ?? []),
       ticketPrice: specialData['ticketPrice'] ?? '',
+      imageUrl: json['imageUrl'],
       collectionStatus: PlaceCollectionStatus.fromJson(json['collectionStatus']),
       visits: (json['visits'] as List<dynamic>?)
           ?.map((visit) => Visit.fromJson(visit as Map<String, dynamic>))
@@ -93,6 +104,9 @@ class Museum implements Place {
     String? name,
     String? type,
     String? emoji,
+    String? imageUrl,
+    double? latitude,
+    double? longitude,
     PlaceCollectionStatus? collectionStatus,
     List<Visit>? visits,
     PlaceInfo? info,
@@ -104,6 +118,9 @@ class Museum implements Place {
       currentExhibitions: currentExhibitions,
       permanentCollections: permanentCollections,
       ticketPrice: ticketPrice,
+      imageUrl: imageUrl ?? this.imageUrl,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       collectionStatus: collectionStatus ?? this.collectionStatus,
       visits: visits ?? this.visits,
       info: info ?? this.info,

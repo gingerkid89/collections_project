@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/api_home_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'providers/locale_provider.dart';
 import 'providers/visits_provider.dart';
@@ -9,6 +10,7 @@ import 'providers/user_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/geofence_provider.dart';
 import 'providers/collections_provider.dart';
+import 'providers/places_provider.dart';
 import 'l10n/app_localizations.dart';
 
 
@@ -75,6 +77,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => GeofenceProvider()),
         ChangeNotifierProvider(create: (context) => CollectionsProvider()),
+        ChangeNotifierProvider(create: (context) => PlacesProvider()),
       ],
       child: Consumer<LocaleProvider>(
         builder: (context, localeProvider, child) {
@@ -152,7 +155,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
             );
           
           case AuthState.authenticated:
-            return const AppInitializer(child: HomeScreen());
+            return const AppInitializer(child: ApiHomeScreen());
           
           case AuthState.unauthenticated:
           case AuthState.error:
