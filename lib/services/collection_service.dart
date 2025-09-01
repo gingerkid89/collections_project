@@ -39,19 +39,9 @@ class CollectionService {
   /// Get a collection by ID (utility method)
   Future<CollectionBase?> getCollectionById(String collectionId) async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/collections/$collectionId'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          return DatabaseCollectionAdapter.fromJson(data['data']);
-        }
-      }
-
-      return null;
+      final collectionsProvider = CollectionsProvider();
+      await collectionsProvider.refresh(); // Ensure collections are loaded
+      return collectionsProvider.getCollectionById(collectionId);
     } catch (e) {
       print('Error getting collection by ID: $e');
       return null;

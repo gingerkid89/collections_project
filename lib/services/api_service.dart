@@ -13,22 +13,13 @@ import '../models/menu_item.dart';
 class ApiService {
   // API Configuration
   static String get baseUrl {
-    if (kDebugMode) {
-      if (kIsWeb) {
-        return 'http://localhost:8080/api/v1';  // Flutter web
-      } else if (Platform.isAndroid) {
-        return 'http://192.168.0.143:8080/api/v1';  // Android real device (your PC's IP)
-      } else {
-        return 'http://localhost:8080/api/v1';  // iOS simulator
-      }
-    }
-    return 'https://your-production-api.com/api/v1';  // Production
+    return 'https://collections-api-3c2p.onrender.com/api/v1';
   }
 
-  static const Duration _timeout = Duration(seconds: 10);
+  static const Duration _timeout = Duration(seconds: 60); // Longer timeout for Render.com cold starts
   
-  // User ID (from Supabase)
-  static const String testUserId = 'ece71e81-a7a9-493a-89bd-eaa725a90a08';
+  // User ID (matches production database)
+  static const String testUserId = 'c1a7b30d-b623-4885-ae0d-b395cdda4b49';
 
   // HTTP Helper Methods
   static Future<Map<String, dynamic>> _get(String endpoint) async {

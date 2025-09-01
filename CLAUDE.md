@@ -1,3 +1,24 @@
+# Collections App - Flutter Frontend
+
+**📋 For complete project overview, see**: `../CLAUDE.md` in the parent folder
+
+## Repository Architecture
+This is the **Flutter frontend repository** - one of two separate repositories:
+
+### **THIS REPOSITORY (Flutter App)**
+- **Location**: `./collection_app/` (within Collections_Projekt)
+- **Purpose**: Flutter mobile/web application frontend  
+- **Contains**: UI, screens, providers, models, services (API client only)
+- **API Integration**: Consumes REST API from `../collections-api-standalone/`
+
+### **SEPARATE API REPOSITORY**
+- **Location**: `../collections-api-standalone/`
+- **GitHub**: `https://github.com/gingerkid89/collections-api.git`
+- **Purpose**: Node.js REST API server with full security implementation
+- **Production**: `https://collections-api-3c2p.onrender.com`
+
+**⚠️ IMPORTANT**: API-related changes should ONLY be made in the `collections-api-standalone` repository, NOT here.
+
 ## Place Creation System Architecture
 
 ### **Core Concept**
@@ -18,9 +39,9 @@ Specialized creation dialog opens:
 - CreateRestaurantDialog (4-step comprehensive process)
 - CreateMuseumDialog (museum-specific fields)
     ↓
-Form data is validated and sent to API
+Form data is validated and sent to API (collections-api-standalone repository)
     ↓
-API creates place in PostgreSQL database
+API creates place in PostgreSQL database (handled in separate API repo)
     ↓
 Place appears in app immediately and persists permanently
 ```
@@ -40,9 +61,12 @@ Place appears in app immediately and persists permanently
 - Visual menu item management with add/remove functionality
 
 ### **Authentication System**
-- **Auto-login for testing**: App automatically logs in as `user@web.com` (password: `123456`)
-- **AuthProvider**: Handles authentication state management
+**⚠️ NOTE**: Full JWT authentication is implemented in the `collections-api-standalone` repository. Flutter app integration is pending.
+
+- **Current (Development)**: App automatically logs in as `user@web.com` (password: `123456`)
+- **AuthProvider**: Handles authentication state management (Flutter frontend)
 - **MockAuthService**: Simulates authentication for development
+- **Production API**: JWT-based authentication available at `/api/v1/auth/*` endpoints in separate API repo
 
 ## Interface Structure Overview
 
@@ -215,25 +239,39 @@ exhibitions: id(UUID), museum_id(FK), name, description, exhibition_type,
 
 ## API Architecture
 
-### **Node.js REST API Server**
-- **Technology Stack:** Node.js + Express.js + PostgreSQL
-- **Server:** `api/server.js` running on **port 8080**
-- **Base URL:** `http://localhost:8080/api/v1`
-- **Documentation:** `http://localhost:8080/api`
-- **Health Check:** `http://localhost:8080/api/health`
+**⚠️ IMPORTANT**: The API backend is maintained in a SEPARATE REPOSITORY:
+- **Repository**: `collections-api-standalone` 
+- **GitHub**: `https://github.com/gingerkid89/collections-api.git`
+- **Location**: `C:\Users\nlaba\Documents\Arbeit\Collections_Projekt\collections-api-standalone`
 
-### **API Structure**
+### **Node.js REST API Server (Separate Repository)**
+- **Technology Stack:** Node.js + Express.js + PostgreSQL + JWT Authentication
+- **Production Server:** `https://collections-api-3c2p.onrender.com`
+- **Base URL:** `https://collections-api-3c2p.onrender.com/api/v1`
+- **Documentation:** `https://collections-api-3c2p.onrender.com/api`
+- **Health Check:** `https://collections-api-3c2p.onrender.com/api/health`
+
+### **API Structure (in collections-api-standalone repository)**
 ```
-api/
-├── server.js           # Main Express server
+collections-api-standalone/
+├── server.js           # Main Express server with security middleware
 ├── database.js         # PostgreSQL connection pool
-├── package.json        # Dependencies (express, pg, cors, helmet)
+├── package.json        # Dependencies (express, pg, cors, helmet, JWT, bcrypt)
 ├── .env               # Environment configuration
-└── routes/
-    ├── places.js      # Places endpoints (restaurants & museums)
-    ├── visits.js      # Visit tracking and creation
-    ├── user.js        # User-specific data and favorites
-    └── exhibitions.js # Museum exhibitions management
+├── middleware/        # Security middleware
+│   ├── auth.js        # JWT authentication & authorization
+│   └── validation.js  # Request validation & sanitization
+├── routes/
+│   ├── auth.js        # Authentication endpoints (login, register, verify)
+│   ├── places.js      # Places endpoints (restaurants & museums) [PROTECTED]
+│   ├── visits.js      # Visit tracking and creation [PROTECTED]
+│   ├── user.js        # User-specific data and favorites [PROTECTED]
+│   └── exhibitions.js # Museum exhibitions management [PUBLIC]
+└── tests/             # Comprehensive security test suite
+    ├── auth.test.js
+    ├── middleware.test.js
+    ├── endpoints.test.js
+    └── rate-limiting.test.js
 ```
 
 ### **Core API Endpoints**
@@ -275,11 +313,11 @@ api/
 ### **Flutter Integration Ready**
 ```dart
 class ApiService {
-  static const String baseUrl = 'http://localhost:3000/api/v1';
+  static String get baseUrl {
+    return 'https://collections-api-3c2p.onrender.com/api/v1';
+  }
   
-  // Development URLs  
-  static const String devWeb = 'http://localhost:3000/api/v1';
-  static const String devAndroid = 'http://192.168.0.143:3000/api/v1';
+  static const Duration _timeout = Duration(seconds: 60); // Longer timeout for Render.com cold starts
   
   // Read operations
   static Future<List<Place>> getPlaces({String? type}) async {
@@ -352,8 +390,9 @@ App State ← Place Object ← API Response ← Database Insert Response ←
 ```
 
 ### **Production Deployment**
-- **Current:** Local development server
-- **Migration Path:** Vercel, Railway, Heroku ready
-- **Configuration:** Environment-based (.env)
-- **Database:** Same PostgreSQL structure
-- **CORS:** Configured for production domains
+- **Current:** Production server deployed on Render.com
+- **API URL:** `https://collections-api-3c2p.onrender.com`
+- **Database:** PostgreSQL hosted on Render.com
+- **Configuration:** Environment-based (.env) for production
+- **CORS:** Configured for Flutter web and mobile apps
+- **Cold Start:** 60-second timeout configured for Render.com free tier sleep behavior

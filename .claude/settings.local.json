@@ -7,7 +7,20 @@
       "Bash(flutter pub:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter build:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker:*)",
+      "WebFetch(domain:terrarossa-bonn.de)",
+      "WebSearch",
+      "WebFetch(domain:www.museumsmeilebonn.de)",
+      "WebFetch(domain:tuscolo.de)",
+      "Bash(npm install)",
+      "Bash(npm start)",
+      "Bash(curl:*)",
+      "Bash(git init:*)",
+      "Bash(node:*)",
+      "Read(C:\\Users\\nlaba\\Documents\\Arbeit\\Collections_Projekt/**)",
+      "Read(C:\\Users\\nlaba\\Documents\\Arbeit\\Collections_Projekt\\collections-api-standalone\\routes/**)",
+      "Read(C:\\Users\\nlaba\\Documents\\Arbeit\\Collections_Projekt\\collections-api-standalone/**)"
     ],
     "deny": [],
     "ask": []

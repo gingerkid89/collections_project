@@ -90,29 +90,51 @@ class CollectionsProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      // Fetch collections directly from database API
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/collections'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          final collectionsJson = data['data'] as List;
-          
-          _collections = collectionsJson.map((collectionData) => 
-            DatabaseCollectionAdapter.fromJson(collectionData)
-          ).toList();
-          
-          _isLoading = false;
-          notifyListeners();
-        } else {
-          throw Exception('API returned error: ${data['message']}');
-        }
-      } else {
-        throw Exception('Failed to load collections: HTTP ${response.statusCode}');
-      }
+      // Create hardcoded collections that match the available API endpoints
+      _collections = [
+        DatabaseCollectionAdapter(
+          id: 'restaurants',
+          name: 'Restaurants',
+          description: 'All restaurants in your collection',
+          iconEmoji: '🍽️',
+          color: Colors.green,
+          locations: [],
+          createdAt: DateTime.now(),
+          isSystemGenerated: true,
+          colorHex: '#4CAF50',
+          totalCount: 1, // Will be updated when places load
+          visitedCount: 0,
+        ),
+        DatabaseCollectionAdapter(
+          id: 'museums',
+          name: 'Museums',
+          description: 'All museums in your collection',
+          iconEmoji: '🏛️',
+          color: Colors.blue,
+          locations: [],
+          createdAt: DateTime.now(),
+          isSystemGenerated: true,
+          colorHex: '#2196F3',
+          totalCount: 1, // Will be updated when places load
+          visitedCount: 0,
+        ),
+        DatabaseCollectionAdapter(
+          id: 'all',
+          name: 'All Places',
+          description: 'All places in your collection',
+          iconEmoji: '📍',
+          color: Colors.purple,
+          locations: [],
+          createdAt: DateTime.now(),
+          isSystemGenerated: true,
+          colorHex: '#9C27B0',
+          totalCount: 2, // Will be updated when places load
+          visitedCount: 0,
+        ),
+      ];
+      
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -157,22 +179,23 @@ class CollectionsProvider with ChangeNotifier {
   /// Load places for a specific collection
   Future<List<Place>> getCollectionPlaces(String collectionId) async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/collections/$collectionId/places'),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['success'] == true) {
-          final placesJson = data['data'] as List;
-          return PlaceFactory.fromJsonList(placesJson);
-        } else {
-          throw Exception('API returned error: ${data['message']}');
-        }
-      } else {
-        throw Exception('Failed to load collection places: HTTP ${response.statusCode}');
+      // Map collection IDs to API calls that exist
+      List<Place> places = [];
+      
+      switch (collectionId) {
+        case 'restaurants':
+          places = await ApiService.getRestaurants();
+          break;
+        case 'museums':
+          places = await ApiService.getMuseums();
+          break;
+        case 'all':
+        default:
+          places = await ApiService.getPlaces();
+          break;
       }
+      
+      return places;
     } catch (e) {
       print('Error loading collection places: $e');
       return [];

@@ -49,6 +49,7 @@ class _CollectionDetailScreenState extends State<CollectionDetailScreen> {
       final collectionsProvider = Provider.of<CollectionsProvider>(context, listen: false);
       final places = await collectionsProvider.getCollectionPlaces(widget.collection.id);
       
+      
       setState(() {
         _places = places;
         _isLoading = false;
