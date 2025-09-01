@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 // Import route modules
+const authRoutes = require('./routes/auth');
 const placesRoutes = require('./routes/places');
 const visitsRoutes = require('./routes/visits');
 const userRoutes = require('./routes/user');
@@ -21,28 +22,71 @@ app.use(helmet({
 }));
 
 // CORS configuration for Flutter app
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [process.env.CORS_ORIGIN, 'https://localhost:3000'].filter(Boolean)
+  : true; // Allow all origins in development
+
 app.use(cors({
-  origin: true, // Allow all origins in development
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: false // Set to false for development simplicity
+  credentials: false
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Limit each IP to 1000 requests per windowMs (generous for development)
-  message: 'Too many requests from this IP, please try again later.',
+// Enhanced rate limiting with different limits for different endpoints
+const createLimiter = (windowMs, max, message) => rateLimit({
+  windowMs,
+  max,
+  message: { error: 'Rate Limit Exceeded', message },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api/', limiter);
+
+// Strict rate limiting for auth endpoints
+const authLimiter = createLimiter(
+  15 * 60 * 1000, // 15 minutes
+  5, // 5 attempts per window
+  'Too many authentication attempts. Please try again in 15 minutes.'
+);
+
+// Moderate rate limiting for write operations
+const writeLimiter = createLimiter(
+  60 * 1000, // 1 minute
+  30, // 30 requests per minute
+  'Too many write requests. Please slow down.'
+);
+
+// General rate limiting for all API endpoints
+const generalLimiter = createLimiter(
+  15 * 60 * 1000, // 15 minutes
+  1000, // 1000 requests per window
+  'Too many requests from this IP, please try again later.'
+);
+
+// Apply rate limiters
+app.use('/api/v1/auth', authLimiter);
+app.use('/api/v1/places', (req, res, next) => {
+  if (req.method === 'POST') {
+    writeLimiter(req, res, next);
+  } else {
+    next();
+  }
+});
+app.use('/api/v1/visits', (req, res, next) => {
+  if (req.method === 'POST') {
+    writeLimiter(req, res, next);
+  } else {
+    next();
+  }
+});
+app.use('/api/', generalLimiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // API routes
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/places', placesRoutes);
 app.use('/api/v1/visits', visitsRoutes);
 app.use('/api/v1/user', userRoutes);
@@ -67,22 +111,26 @@ app.get('/api', (req, res) => {
     description: 'REST API for Collections App - Places, Restaurants, Museums, and Visits',
     endpoints: {
       health: 'GET /api/health',
+      auth: {
+        'Login': 'POST /api/v1/auth/login',
+        'Register': 'POST /api/v1/auth/register',
+        'Verify token': 'POST /api/v1/auth/verify',
+        'Logout': 'POST /api/v1/auth/logout'
+      },
       places: {
-        'All places': 'GET /api/v1/places',
-        'Single place': 'GET /api/v1/places/:id',
-        'Place menu': 'GET /api/v1/places/:id/menu',
-        'Restaurants only': 'GET /api/v1/places?type=restaurant',
-        'Museums only': 'GET /api/v1/places?type=museum'
+        'All places (public)': 'GET /api/v1/places',
+        'Single place (public)': 'GET /api/v1/places/:id',
+        'Place menu (public)': 'GET /api/v1/places/:id/menu',
+        'Create place': 'POST /api/v1/places [Auth Required]'
       },
       visits: {
-        'All visits': 'GET /api/v1/visits',
-        'User visits': 'GET /api/v1/visits?userId=:userId',
-        'Place visits': 'GET /api/v1/visits?placeId=:placeId',
-        'Create visit': 'POST /api/v1/visits'
+        'Public visits': 'GET /api/v1/visits',
+        'Create visit': 'POST /api/v1/visits [Auth Required]'
       },
       user: {
-        'User places': 'GET /api/v1/user/:userId/places',
-        'User favorites': 'GET /api/v1/user/:userId/favorites'
+        'User places': 'GET /api/v1/user/:userId/places [Auth Required]',
+        'User favorites': 'GET /api/v1/user/:userId/favorites [Auth Required]',
+        'User stats': 'GET /api/v1/user/:userId/stats [Auth Required]'
       },
       exhibitions: {
         'All exhibitions': 'GET /api/v1/exhibitions',

@@ -1,10 +1,13 @@
 // routes/visits.js - Visits endpoints
 const express = require('express');
 const pool = require('../database');
+const { verifyToken, requireOwnershipOrAdmin, optionalAuth } = require('../middleware/auth');
+const { validationRules, sanitizeInput } = require('../middleware/validation');
 const router = express.Router();
 
 // GET /api/v1/visits - Get visits with optional filtering
-router.get('/', async (req, res) => {
+// Optional authentication - shows public visits or user's own visits
+router.get('/', optionalAuth, async (req, res) => {
   try {
     const { userId, placeId, placeType, limit, offset, isPublic } = req.query;
     
@@ -185,7 +188,9 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/v1/visits - Create new visit
-router.post('/', async (req, res) => {
+// POST /api/v1/visits - Create a new visit
+// Requires authentication - users can only create their own visits
+router.post('/', verifyToken, sanitizeInput, validationRules.createVisit, async (req, res) => {
   const client = await pool.connect();
   
   try {

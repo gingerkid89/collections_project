@@ -1,10 +1,13 @@
 // routes/places.js - Places endpoints (restaurants and museums)
 const express = require('express');
 const pool = require('../database');
+const { verifyToken, requireAdmin, optionalAuth } = require('../middleware/auth');
+const { validationRules, sanitizeInput } = require('../middleware/validation');
 const router = express.Router();
 
 // GET /api/v1/places - Get all places with optional filtering
-router.get('/', async (req, res) => {
+// Public endpoint with optional authentication for personalized data
+router.get('/', optionalAuth, validationRules.validatePlaceQuery, async (req, res) => {
   try {
     const { type, limit, offset, search } = req.query;
     
@@ -267,7 +270,8 @@ router.get('/:id/menu', async (req, res) => {
 });
 
 // POST /api/v1/places - Create a new place (restaurant or museum)
-router.post('/', async (req, res) => {
+// Requires authentication - any authenticated user can create places
+router.post('/', verifyToken, sanitizeInput, validationRules.createPlace, async (req, res) => {
   const client = await pool.connect();
   
   try {

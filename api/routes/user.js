@@ -1,10 +1,13 @@
 // routes/user.js - User-specific endpoints
 const express = require('express');
 const pool = require('../database');
+const { verifyToken, requireOwnershipOrAdmin } = require('../middleware/auth');
+const { validationRules } = require('../middleware/validation');
 const router = express.Router();
 
 // GET /api/v1/user/:userId/places - Get user's places with collection status
-router.get('/:userId/places', async (req, res) => {
+// Requires authentication - users can only access their own data
+router.get('/:userId/places', verifyToken, requireOwnershipOrAdmin, validationRules.validateUserId, async (req, res) => {
   try {
     const { userId } = req.params;
     const { type, visited, limit, offset } = req.query;
@@ -113,7 +116,9 @@ router.get('/:userId/places', async (req, res) => {
 });
 
 // GET /api/v1/user/:userId/favorites - Get user's favorite places (most visited)
-router.get('/:userId/favorites', async (req, res) => {
+// GET /api/v1/user/:userId/favorites - Get user's favorite places
+// Requires authentication - users can only access their own data
+router.get('/:userId/favorites', verifyToken, requireOwnershipOrAdmin, validationRules.validateUserId, async (req, res) => {
   try {
     const { userId } = req.params;
     const { limit = 10 } = req.query;
@@ -181,7 +186,9 @@ router.get('/:userId/favorites', async (req, res) => {
 });
 
 // GET /api/v1/user/:userId/stats - Get user statistics
-router.get('/:userId/stats', async (req, res) => {
+// GET /api/v1/user/:userId/stats - Get user's statistics
+// Requires authentication - users can only access their own data
+router.get('/:userId/stats', verifyToken, requireOwnershipOrAdmin, validationRules.validateUserId, async (req, res) => {
   try {
     const { userId } = req.params;
     

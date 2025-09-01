@@ -27,8 +27,8 @@ class ApiService {
 
   static const Duration _timeout = Duration(seconds: 10);
   
-  // Test user ID (from database)
-  static const String testUserId = 'c1a7b30d-b623-4885-ae0d-b395cdda4b49';
+  // User ID (from Supabase)
+  static const String testUserId = 'ece71e81-a7a9-493a-89bd-eaa725a90a08';
 
   // HTTP Helper Methods
   static Future<Map<String, dynamic>> _get(String endpoint) async {
