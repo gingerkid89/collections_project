@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:http/http.dart' as http;
 import '../models/user.dart';
 
 abstract class AuthService {
@@ -37,10 +38,13 @@ class MockAuthService implements AuthService {
       throw Exception('Email and password cannot be empty');
     }
     
-    // Test credentials for easy login
+    // Test credentials for easy login - try to get real JWT token
     if ((email == 'user@mail.com' || email == 'user@web.com') && password == '123456') {
+      // Try to authenticate with the actual API
+      final realToken = await _authenticateWithAPI(email, password);
+      
       final user = User(
-        id: 'test_user_001',
+        id: 'c1a7b30d-b623-4885-ae0d-b395cdda4b49', // Use the actual test user ID from API
         name: 'Test User',
         email: email,
         authProvider: AuthProvider.email,
@@ -48,7 +52,16 @@ class MockAuthService implements AuthService {
         lastActiveAt: DateTime.now(),
       );
       
-      await _saveUser(user);
+      // Save user and token
+      await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
+      if (realToken != null) {
+        await _storage.write(key: _tokenKey, value: realToken);
+        print('✅ Successfully authenticated with API and got JWT token');
+      } else {
+        await _storage.write(key: _tokenKey, value: _generateToken());
+        print('⚠️ API authentication failed, using mock token');
+      }
+      
       _currentUser = user;
       return user;
     }
@@ -207,9 +220,36 @@ class MockAuthService implements AuthService {
   }
 
   String _generateToken() {
+    // For testing, we should get a real JWT token from the API
+    // For now, return a temporary mock token
     final random = Random.secure();
     final bytes = List<int>.generate(32, (i) => random.nextInt(256));
     return base64Url.encode(bytes);
+  }
+
+  // Method to authenticate with the actual API and get a real JWT token
+  Future<String?> _authenticateWithAPI(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://collections-api-3c2p.onrender.com/api/v1/auth/login'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['token']; // Assuming the API returns a 'token' field
+      }
+    } catch (e) {
+      print('API authentication failed: $e');
+    }
+    return null;
   }
 
   bool _isValidEmail(String email) {

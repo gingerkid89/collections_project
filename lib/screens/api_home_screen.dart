@@ -10,6 +10,7 @@ import 'collection_detail_screen.dart';
 import 'settings_screen.dart';
 import 'recent_visits_screen.dart';
 import 'collection_map_screen.dart';
+import 'location_based_map_screen.dart';
 import 'place_creation/place_type_selection_dialog.dart';
 
 class ApiHomeScreen extends StatefulWidget {
@@ -146,16 +147,14 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
                               ),
                               IconButton(
                                 onPressed: () {
-                                  if (collections.isNotEmpty) {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) => CollectionMapScreen.allPlaces(collections: collections),
-                                      ),
-                                    );
-                                  }
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const LocationBasedMapScreen(),
+                                    ),
+                                  );
                                 },
-                                icon: const Icon(Icons.map_outlined, color: Color(0xFF6B7280)),
-                                tooltip: 'Explore Map',
+                                icon: const Icon(Icons.location_on, color: Color(0xFF6B7280)),
+                                tooltip: 'Nearby Places',
                               ),
                               IconButton(
                                 onPressed: () => Navigator.of(context).push(

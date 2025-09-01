@@ -1040,6 +1040,8 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           builder: (context) => CollectionMapScreen(collection: tempCollection),
         ),
       );
+    } else {
+      _showErrorSnackBar('No location information available for ${place.name}');
     }
   }
 
@@ -1124,15 +1126,25 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       return realLocation;
     }
     
-    // Fallback: Get coordinates based on known locations from the app
-    double latitude = 50.9429; // Default Cologne coordinates
-    double longitude = 6.9584;
+    // Use the Place's own latitude and longitude if available (from API data)
+    double? latitude = place.latitude;
+    double? longitude = place.longitude;
     
-    // Try to match with known locations for better coordinates
-    final locationCoords = _getCoordinatesForPlace(place);
-    if (locationCoords != null) {
-      latitude = locationCoords['lat']!;
-      longitude = locationCoords['lng']!;
+    // If Place doesn't have coordinates, try to match with known locations
+    if (latitude == null || longitude == null) {
+      final locationCoords = _getCoordinatesForPlace(place);
+      if (locationCoords != null) {
+        latitude = locationCoords['lat']!;
+        longitude = locationCoords['lng']!;
+      } else if (place.info.address.isNotEmpty) {
+        // If we have an address but no coordinates, use center of Bonn as fallback
+        // This allows the map to show with address-based display
+        latitude = 50.7374; // Bonn city center
+        longitude = 7.0982;
+      } else {
+        // No coordinates or address available
+        return null;
+      }
     }
     
     return Location(
@@ -1184,12 +1196,18 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   CollectionBase _createTempCollectionForPlace(Place place, Location location) {
+    // Check if we're using fallback coordinates
+    final usingFallback = place.latitude == null || place.longitude == null;
+    final description = usingFallback 
+        ? 'Approximate location - ${place.info.address}'
+        : 'Single place view';
+    
     // Create a minimal collection implementation for the map view
     return _TempCollection(
       id: 'temp_${place.id}',
       name: place.name,
       iconEmoji: place.emoji,
-      description: 'Single place view',
+      description: description,
       createdAt: DateTime.now(),
       locations: [location],
       color: Colors.grey,

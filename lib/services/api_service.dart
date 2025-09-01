@@ -9,6 +9,7 @@ import '../models/restaurant.dart';
 import '../models/museum.dart';
 import '../models/visit.dart';
 import '../models/menu_item.dart';
+import 'auth_service.dart';
 
 class ApiService {
   // API Configuration
@@ -20,16 +21,34 @@ class ApiService {
   
   // User ID (matches production database)
   static const String testUserId = 'c1a7b30d-b623-4885-ae0d-b395cdda4b49';
+  
+  // Auth service instance
+  static final AuthService _authService = MockAuthService();
+
+  // Get headers with optional authorization
+  static Future<Map<String, String>> _getHeaders({bool requireAuth = false}) async {
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    
+    if (requireAuth) {
+      final token = await _authService.getToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    }
+    
+    return headers;
+  }
 
   // HTTP Helper Methods
-  static Future<Map<String, dynamic>> _get(String endpoint) async {
+  static Future<Map<String, dynamic>> _get(String endpoint, {bool requireAuth = false}) async {
     try {
+      final headers = await _getHeaders(requireAuth: requireAuth);
       final response = await http.get(
         Uri.parse('$baseUrl$endpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       ).timeout(_timeout);
 
       return _handleResponse(response);
@@ -38,14 +57,12 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> _post(String endpoint, Map<String, dynamic> data) async {
+  static Future<Map<String, dynamic>> _post(String endpoint, Map<String, dynamic> data, {bool requireAuth = false}) async {
     try {
+      final headers = await _getHeaders(requireAuth: requireAuth);
       final response = await http.post(
         Uri.parse('$baseUrl$endpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode(data),
       ).timeout(_timeout);
 
@@ -124,7 +141,7 @@ class ApiService {
     return menuData.map<MenuItem>((json) => MenuItem.fromJson(json)).toList();
   }
 
-  // User Endpoints
+  // User Endpoints (require authentication)
   static Future<List<Place>> getUserPlaces({String? type, bool? visited}) async {
     final queryParams = <String, String>{};
     if (type != null) queryParams['type'] = type;
@@ -134,7 +151,7 @@ class ApiService {
       ? '?${queryParams.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&')}'
       : '';
 
-    final result = await _get('/user/$testUserId/places$queryString');
+    final result = await _get('/user/$testUserId/places$queryString', requireAuth: true);
     final placesData = result['data'] as List<dynamic>;
 
     return placesData.map<Place>((json) {
@@ -151,7 +168,7 @@ class ApiService {
   }
 
   static Future<List<Place>> getUserFavorites() async {
-    final result = await _get('/user/$testUserId/favorites');
+    final result = await _get('/user/$testUserId/favorites', requireAuth: true);
     final placesData = result['data'] as List<dynamic>;
 
     return placesData.map<Place>((json) {
@@ -168,7 +185,7 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getUserStats() async {
-    final result = await _get('/user/$testUserId/stats');
+    final result = await _get('/user/$testUserId/stats', requireAuth: true);
     return result['data'] as Map<String, dynamic>;
   }
 
