@@ -14,6 +14,7 @@ import '../models/location.dart';
 import '../providers/visits_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/collections_provider.dart';
+import '../utils/default_place_images.dart';
 import '../l10n/app_localizations.dart';
 import 'visit_detail_screen.dart';
 import 'collection_map_screen.dart';
@@ -177,45 +178,16 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Background Image or Gradient
-          place.imageUrl != null
-              ? Image.network(
-                  place.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Fallback to gradient background with emoji if image fails
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.blue.shade400, Colors.blue.shade600],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          place.emoji,
-                          style: const TextStyle(fontSize: 48),
-                        ),
-                      ),
-                    );
-                  },
-                )
-              : Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      place.emoji,
-                      style: const TextStyle(fontSize: 48),
-                    ),
-                  ),
-                ),
+          // Enhanced background image with beautiful defaults
+          DefaultPlaceImages.buildPlaceImage(
+            placeType: place.type,
+            placeName: place.name,
+            imageUrl: place.imageUrl,
+            emoji: place.emoji,
+            width: double.infinity,
+            height: 180,
+            fit: BoxFit.cover,
+          ),
           Positioned(
             bottom: 0,
             left: 0,

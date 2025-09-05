@@ -14,10 +14,10 @@ import 'auth_service.dart';
 class ApiService {
   // API Configuration
   static String get baseUrl {
-    return 'https://collections-api-3c2p.onrender.com/api/v1';
+    return 'https://collections-api-production.up.railway.app/api/v1';
   }
 
-  static const Duration _timeout = Duration(seconds: 60); // Longer timeout for Render.com cold starts
+  static const Duration _timeout = Duration(seconds: 30); // Railway typically has fast response times
   
   // User ID (matches production database)
   static const String testUserId = 'c1a7b30d-b623-4885-ae0d-b395cdda4b49';

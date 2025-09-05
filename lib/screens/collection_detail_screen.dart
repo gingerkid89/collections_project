@@ -11,6 +11,7 @@ import '../models/menu_item.dart';
 import '../models/visit.dart';
 import '../providers/visits_provider.dart';
 import '../providers/collections_provider.dart';
+import '../utils/default_place_images.dart';
 import 'place_detail_factory.dart';
 
 
@@ -1246,35 +1247,19 @@ class PlaceTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Image or Placeholder
-              place.imageUrl != null
-                  ? ColorFiltered(
-                      colorFilter: place.collectionStatus.isVisited
-                          ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
-                          : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
-                      child: Image.network(
-                        place.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: Icon(
-                              _placeholderIcon,
-                              size: 40,
-                              color: Colors.grey[600],
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[300],
-                      child: Icon(
-                        _placeholderIcon,
-                        size: 40,
-                        color: Colors.grey[600],
-                      ),
-                    ),
+              // Image with enhanced default image
+              ColorFiltered(
+                colorFilter: place.collectionStatus.isVisited
+                    ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                    : const ColorFilter.mode(Colors.grey, BlendMode.saturation),
+                child: DefaultPlaceImages.buildPlaceImage(
+                  placeType: place.type,
+                  placeName: place.name,
+                  imageUrl: place.imageUrl,
+                  emoji: place.emoji,
+                  fit: BoxFit.cover,
+                ),
+              ),
               
               // Overlay with place info
               Container(
