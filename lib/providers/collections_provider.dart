@@ -5,9 +5,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/collection_base.dart';
 import '../models/location.dart';
-import '../services/api_service.dart';
+import '../services/enhanced_api_service.dart';
+import '../services/auth_service.dart';
 import '../factories/place_factory.dart';
 import '../models/place.dart';
+import '../providers/visits_provider.dart';
 /// Database Collection adapter that implements CollectionBase interface
 class DatabaseCollectionAdapter extends CollectionBase {
   DatabaseCollectionAdapter({
@@ -75,10 +77,16 @@ class CollectionsProvider with ChangeNotifier {
   List<CollectionBase> _collections = [];
   bool _isLoading = false;
   String? _error;
+  VisitsProvider? _visitsProvider;
   
   List<CollectionBase> get collections => List.unmodifiable(_collections);
   bool get isLoading => _isLoading;
   String? get error => _error;
+  
+  // Set visits provider for syncing visit data
+  void setVisitsProvider(VisitsProvider visitsProvider) {
+    _visitsProvider = visitsProvider;
+  }
   
   CollectionsProvider() {
     _initializeCollections();
@@ -90,62 +98,77 @@ class CollectionsProvider with ChangeNotifier {
     notifyListeners();
     
     try {
-      // Create hardcoded collections that match the available API endpoints
-      _collections = [
-        DatabaseCollectionAdapter(
-          id: 'restaurants',
-          name: 'Restaurants',
-          description: 'All restaurants in your collection',
-          iconEmoji: '🍽️',
-          color: Colors.green,
-          locations: [],
-          createdAt: DateTime.now(),
-          isSystemGenerated: true,
-          colorHex: '#4CAF50',
-          totalCount: 1, // Will be updated when places load
-          visitedCount: 0,
-        ),
-        DatabaseCollectionAdapter(
-          id: 'museums',
-          name: 'Museums',
-          description: 'All museums in your collection',
-          iconEmoji: '🏛️',
-          color: Colors.blue,
-          locations: [],
-          createdAt: DateTime.now(),
-          isSystemGenerated: true,
-          colorHex: '#2196F3',
-          totalCount: 1, // Will be updated when places load
-          visitedCount: 0,
-        ),
-        DatabaseCollectionAdapter(
-          id: 'all',
-          name: 'All Places',
-          description: 'All places in your collection',
-          iconEmoji: '📍',
-          color: Colors.purple,
-          locations: [],
-          createdAt: DateTime.now(),
-          isSystemGenerated: true,
-          colorHex: '#9C27B0',
-          totalCount: 2, // Will be updated when places load
-          visitedCount: 0,
-        ),
-      ];
+      // Ensure authentication first
+      await _ensureAuthenticated();
+      
+      // Fetch real collections from the API
+      final collectionsData = await EnhancedApiService.getCollections();
+      
+      _collections = collectionsData.map((json) => DatabaseCollectionAdapter.fromJson(json)).toList();
       
       _isLoading = false;
       notifyListeners();
+      
+      print('Loaded ${_collections.length} collections from database');
+      
     } catch (e) {
+      print('Error loading collections: $e');
       _error = e.toString();
       _isLoading = false;
-      _collections = []; // Fallback to empty list
+      
+      // Fallback to empty list if API fails
+      _collections = [];
       notifyListeners();
     }
   }
   
   /// Refresh collections from API
   Future<void> refresh() async {
-    await _initializeCollections();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Ensure authentication first
+      await _ensureAuthenticated();
+
+      // Force refresh from API, bypass cache
+      final collectionsData = await EnhancedApiService.getCollections(forceRefresh: true);
+
+      _collections = collectionsData.map((json) => DatabaseCollectionAdapter.fromJson(json)).toList();
+
+      _isLoading = false;
+      notifyListeners();
+
+      print('Refreshed ${_collections.length} collections from API');
+
+    } catch (e) {
+      print('Error refreshing collections: $e');
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  
+  /// Alias for refresh() method - refresh all collections from API
+  Future<void> refreshAllCollections() async {
+    await refresh();
+  }
+  
+  /// Ensure user is authenticated for API calls
+  Future<void> _ensureAuthenticated() async {
+    final authService = MockAuthService();
+    final isSignedIn = await authService.isSignedIn();
+    
+    if (!isSignedIn) {
+      print('User not authenticated, attempting auto-login...');
+      try {
+        await authService.signInWithEmail('user@web.com', '123456');
+        print('Auto-login successful');
+      } catch (e) {
+        print('Auto-login failed: $e');
+      }
+    }
   }
   
   /// Get collection by ID
@@ -179,26 +202,50 @@ class CollectionsProvider with ChangeNotifier {
   /// Load places for a specific collection
   Future<List<Place>> getCollectionPlaces(String collectionId) async {
     try {
-      // Map collection IDs to API calls that exist
-      List<Place> places = [];
+      print('🔍 Loading places for collection: $collectionId');
       
-      switch (collectionId) {
-        case 'restaurants':
-          places = await ApiService.getRestaurants();
-          break;
-        case 'museums':
-          places = await ApiService.getMuseums();
-          break;
-        case 'all':
-        default:
-          places = await ApiService.getPlaces();
-          break;
+      // Use the new collections API endpoint to get places for this collection
+      final places = await EnhancedApiService.getCollectionPlaces(collectionId);
+      
+      print('📍 Loaded ${places.length} places from API for collection $collectionId');
+      for (var place in places) {
+        print('   - ${place.name} (${place.type})');
       }
       
+      // Sync places with local visit data if visits provider is available
+      if (_visitsProvider != null) {
+        final syncedPlaces = _syncPlacesWithVisitData(places);
+        print('✅ Synced places with visit data: ${syncedPlaces.length} places');
+        return syncedPlaces;
+      }
+      
+      print('✅ Returning ${places.length} places without visit sync');
       return places;
     } catch (e) {
-      print('Error loading collection places: $e');
+      print('❌ Error loading collection places: $e');
       return [];
     }
   }
+  
+  /// Sync places with local visit data to ensure accurate collection status
+  List<Place> _syncPlacesWithVisitData(List<Place> places) {
+    return places.map((place) {
+      final hasVisited = _visitsProvider!.hasVisited(place.id);
+      final visitCount = _visitsProvider!.getVisitCount(place.id);
+      final lastVisit = _visitsProvider!.getLastVisitDate(place.id);
+      final averageRating = _visitsProvider!.getAverageRating(place.id);
+      
+      // Update collection status with local visit data
+      final updatedCollectionStatus = PlaceCollectionStatus(
+        isVisited: hasVisited,
+        lastVisit: lastVisit,
+        userRating: averageRating,
+        visitCount: visitCount,
+      );
+      
+      // Return updated place with synced collection status
+      return place.copyWith(collectionStatus: updatedCollectionStatus);
+    }).toList();
+  }
+  
 }

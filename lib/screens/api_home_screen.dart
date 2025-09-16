@@ -6,6 +6,8 @@ import '../l10n/app_localizations.dart';
 import '../models/collection_base.dart';
 import '../providers/places_provider.dart';
 import '../providers/collections_provider.dart';
+import '../providers/visits_provider.dart';
+import '../widgets/connectivity_status_widget.dart';
 import 'collection_detail_screen.dart';
 import 'settings_screen.dart';
 import 'recent_visits_screen.dart';
@@ -23,8 +25,10 @@ class ApiHomeScreen extends StatefulWidget {
 class _ApiHomeScreenState extends State<ApiHomeScreen> {
   @override
   Widget build(BuildContext context) {
-    return Consumer<CollectionsProvider>(
-      builder: (context, collectionsProvider, child) {
+    return Consumer2<CollectionsProvider, VisitsProvider>(
+      builder: (context, collectionsProvider, visitsProvider, child) {
+        // Ensure collections provider has access to visits data
+        collectionsProvider.setVisitsProvider(visitsProvider);
         final l10n = AppLocalizations.of(context)!;
         
         if (collectionsProvider.isLoading) {
@@ -54,39 +58,99 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
         if (collectionsProvider.error != null) {
           return Scaffold(
             backgroundColor: const Color(0xFFF9FAFB),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Color(0xFF6B7280),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Failed to load places',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
+            body: ConnectivityStatusWidget(
+              child: SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF2F2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(
+                            Icons.cloud_off_outlined,
+                            size: 48,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Connection Problem',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Unable to connect to the server. Please check your connection and try again.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF6B7280),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => collectionsProvider.refresh(),
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Try Again'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        TextButton(
+                          onPressed: () {
+                            // Show detailed error information
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Technical Details'),
+                                content: SingleChildScrollView(
+                                  child: Text(
+                                    collectionsProvider.error!,
+                                    style: const TextStyle(fontFamily: 'monospace'),
+                                  ),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('Close'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'View technical details',
+                            style: TextStyle(
+                              color: Color(0xFF6B7280),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    collectionsProvider.error!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => collectionsProvider.refresh(),
-                    child: const Text('Retry'),
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -101,9 +165,10 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xFFF9FAFB),
-          body: SafeArea(
-            child: Column(
-              children: [
+          body: ConnectivityStatusWidget(
+            child: SafeArea(
+              child: Column(
+                children: [
                 Container(
                   color: Colors.white,
                   padding: const EdgeInsets.all(24),
@@ -296,7 +361,7 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
                         const SizedBox(height: 32),
                         
                         // Create Place Button
-                        _CreatePlaceButton(),
+                        const _CreatePlaceButton(),
                       ],
                     ),
                   ),
@@ -304,7 +369,7 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
               ],
             ),
           ),
-        );
+        ));
       },
     );
   }
@@ -441,6 +506,8 @@ class _CollectionCard extends StatelessWidget {
 }
 
 class _CreatePlaceButton extends StatelessWidget {
+  const _CreatePlaceButton();
+
   @override
   Widget build(BuildContext context) {
     return Container(
