@@ -308,21 +308,15 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        // Collections Grid
+                        // Collections List
                         if (collections.isNotEmpty)
-                          GridView.builder(
+                          ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.75,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
                             itemCount: collections.length,
                             itemBuilder: (context, index) {
                               final collection = collections[index];
-                              return _CollectionCard(collection: collection);
+                              return _CollectionListItem(collection: collection);
                             },
                           )
                         else
@@ -371,6 +365,163 @@ class _ApiHomeScreenState extends State<ApiHomeScreen> {
           ),
         ));
       },
+    );
+  }
+}
+
+class _CollectionListItem extends StatelessWidget {
+  final CollectionBase collection;
+
+  const _CollectionListItem({required this.collection});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = collection.totalCount > 0
+        ? (collection.visitedCount / collection.totalCount) * 100
+        : 0.0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.1),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => CollectionDetailScreen(collection: collection),
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Icon
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: collection.color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      collection.iconEmoji,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                // Main content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              collection.name,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF111827),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: progress == 100
+                                  ? const Color(0xFF10B981).withOpacity(0.1)
+                                  : const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              progress == 100 ? '✓ Complete' : '${progress.toInt()}%',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: progress == 100
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFF6B7280),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.restaurant,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${collection.totalCount} places',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Icon(
+                            Icons.check_circle,
+                            size: 14,
+                            color: collection.color,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${collection.visitedCount} visited',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: collection.color,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (collection.description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          collection.description,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+
+                // Arrow
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

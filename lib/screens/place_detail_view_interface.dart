@@ -98,6 +98,9 @@ abstract class PlaceDetailViewInterface extends StatefulWidget {
   List<PlaceStatistic> getSpecificStats(BuildContext? context);
   List<Widget> getOverviewContent(BuildContext context);
   Widget? getFloatingActionButton(BuildContext context);
+  
+  // Abstract method for creating place-specific visits
+  Future<Visit?> createVisit(BuildContext context);
 }
 
 // ================================
@@ -165,7 +168,7 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
       ),
 
       bottomNavigationBar: _buildBottomNavigation(),
-      floatingActionButton: widget.placeView.getFloatingActionButton(context),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -336,26 +339,6 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
           const SizedBox(height: 16),
           
           ...widget.placeView.getOverviewContent(context),
-
-          const SizedBox(height: 24),
-
-          // Zentrale Add Visit Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _addVisit(),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addNewVisit),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
 
           const SizedBox(height: 16),
 
@@ -898,6 +881,9 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   Widget _buildInfoCard(IconData icon, String title, String content) {
+    // Handle empty or null content
+    final displayContent = content.trim().isEmpty ? 'Nicht verfügbar' : content;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -919,7 +905,13 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(content),
+                  Text(
+                    displayContent,
+                    style: TextStyle(
+                      color: content.trim().isEmpty ? Colors.grey : null,
+                      fontStyle: content.trim().isEmpty ? FontStyle.italic : null,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -981,6 +973,26 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
     return '${date.day}.${date.month}.${date.year}';
   }
 
+  Widget _buildFloatingActionButton() {
+    // Get the place-specific FAB for styling info
+    final placeFab = widget.placeView.getFloatingActionButton(context);
+    if (placeFab is FloatingActionButton) {
+      return FloatingActionButton(
+        onPressed: () => _addVisit(), // Use interface method
+        backgroundColor: placeFab.backgroundColor,
+        child: placeFab.child,
+        heroTag: placeFab.heroTag,
+      );
+    }
+    
+    // Fallback generic FAB
+    return FloatingActionButton(
+      onPressed: () => _addVisit(),
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.add),
+    );
+  }
+
   void _addToFavorites() {
     // TODO: Implement
   }
@@ -990,11 +1002,37 @@ class _GenericPlaceDetailViewState extends State<GenericPlaceDetailView> {
   }
 
   void _addVisit() async {
-    // Use the place's specific FAB functionality
-    final fab = widget.placeView.getFloatingActionButton(context);
-    if (fab is FloatingActionButton) {
-      // Execute the FAB's onPressed function
-      fab.onPressed?.call();
+    try {
+      // Use the place's specific visit creation dialog
+      final visit = await widget.placeView.createVisit(context);
+      
+      if (visit != null && mounted) {
+        // Add the visit to provider
+        final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
+        await visitsProvider.addVisit(visit);
+        
+        // Return the visit to the parent screen for collection updates
+        Navigator.of(context).pop(visit);
+        
+        // Show confirmation message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Visit saved successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save visit: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

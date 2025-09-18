@@ -355,10 +355,10 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
         MaterialPageRoute(builder: (context) => detailView),
       );
       
-      // If a visit was created and returned, save it and mark location as visited
+      // If a visit was created and returned, mark location as visited
       if (result != null && result is Visit && mounted) {
+        // Visit is already added by the interface - no need to add again
         final visitsProvider = Provider.of<VisitsProvider>(context, listen: false);
-        await visitsProvider.addVisit(result);
         
         setState(() {
           // Use the actual rating from the visit instead of hardcoded 5
@@ -444,10 +444,11 @@ class _CollectionMapScreenState extends State<CollectionMapScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          location.address,
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          location.address.trim().isEmpty ? 'Adresse nicht verfügbar' : location.address,
+                          style: TextStyle(
+                            color: location.address.trim().isEmpty ? Colors.grey.shade400 : Colors.grey,
                             fontSize: 14,
+                            fontStyle: location.address.trim().isEmpty ? FontStyle.italic : null,
                           ),
                         ),
                         const SizedBox(height: 8),

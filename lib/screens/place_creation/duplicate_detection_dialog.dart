@@ -411,10 +411,11 @@ class _DuplicateDetectionDialogState extends State<DuplicateDetectionDialog> {
             ),
             const SizedBox(height: 12),
             Text(
-              match.place.info.address,
-              style: const TextStyle(
+              match.place.info.address.trim().isEmpty ? 'Adresse nicht verfügbar' : match.place.info.address,
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF6B7280),
+                color: match.place.info.address.trim().isEmpty ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                fontStyle: match.place.info.address.trim().isEmpty ? FontStyle.italic : null,
               ),
             ),
             const SizedBox(height: 8),
